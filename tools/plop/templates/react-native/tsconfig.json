@@ -1,0 +1,15 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES6",
+    "outDir": "./dist/",
+    "rootDir": "./src",
+    "declaration": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true
+  }
+}

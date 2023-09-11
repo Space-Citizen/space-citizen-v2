@@ -1,0 +1,26 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    name: Install and build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: install # will run `yarn install` command
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: build # will run `yarn build` command
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: lint # will run `yarn lint` command
+      - uses: borales/actions-yarn@v4
+        with:
+          cmd: test # will run `yarn test` command

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist/",
+    "module": "ESNext",
+    "target": "ES6",
+    "jsx": "react",
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}

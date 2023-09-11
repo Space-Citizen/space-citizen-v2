@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "./lib/",
+    "rootDir": "./src",
+    "declaration": true,
+    "noImplicitAny": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "moduleResolution": "node"
+  },
+  "include": ["./src/**/*"]
+}

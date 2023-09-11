@@ -1,0 +1,28 @@
+{
+  "name": "root",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "lerna run build",
+    "build-scope": "lerna run build --scope",
+    "start": "lerna run start --parallel",
+    "start-scope": "yarn start --scope",
+    "clean": "lerna run clean",
+    "test": "lerna run test",
+    "test:watch": "lerna run test:watch",
+    "prettier": "prettier --write ./packages/**/src/**",
+    "generate": "plop --plopfile ./tools/plop/plopfile.js",
+    "lint": "lerna run lint",
+    "lint-scope": "lerna run lint --scope"
+  },
+  "devDependencies": {
+    "expo-yarn-workspaces": "^2.0.4",
+    "@types/node": "^12.0.0",
+    "lerna": "^4.0.0",
+    "plop": "^2.7.4",
+    "ts-jest": "^27.1.3",
+    "prettier": "^2.2.1"
+  }
+}
