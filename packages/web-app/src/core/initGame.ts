@@ -6,7 +6,7 @@ const startMap: number[][] = [
   [1, 1, 1, 1, 1, 1, 1, 1],
   [1, 0, 0, 0, 0, 1, 0, 1],
   [1, 0, 0, 0, 0, 0, 0, 1],
-  [1, 1, 1, 0, 0, 0, 0, 1],
+  [1, 0, 1, 0, 0, 0, 0, 1],
   [1, 0, 0, 0, 0, 1, 1, 1],
 ];
 
@@ -36,13 +36,38 @@ export async function initGame() {
   }, []);
 
   const mapContainer = createMap(cells);
-  mapContainer.x = 300;
-  mapContainer.y = 300;
-  app.stage.addChild(mapContainer);
+  mapContainer.pivot.x = mapContainer.width / 2;
+  mapContainer.pivot.y = mapContainer.height / 2;
+  mapContainer.x = app.view.width / 2;
+  mapContainer.y = app.view.height / 2;
+
   const character = await createCharacter();
-  app.stage.addChild(character);
-  window.addEventListener("keydown", (e) => {
-    switch (e.key) {
+  character.x = mapContainer.x / 2;
+  character.y = mapContainer.y / 2;
+  character.pivot.x = character.width / 2;
+  character.pivot.y = character.height / 2;
+
+  // sort based on zIndex
+  mapContainer.sortableChildren = true;
+  mapContainer.addChild(character);
+  app.stage.addChild(mapContainer);
+  const pressedKeys = new Set();
+
+  function moveCharacter() {
+    const key = pressedKeys.values().next().value;
+    const shouldShoot = pressedKeys.has(" ");
+    const shootDirection = pressedKeys.has("ArrowLeft")
+      ? "left"
+      : pressedKeys.has("ArrowRight")
+      ? "right"
+      : undefined;
+
+    if (shouldShoot && shootDirection) {
+      character.shoot(shootDirection);
+      return;
+    }
+
+    switch (key) {
       case "ArrowUp":
         character.walk("up");
         break;
@@ -56,14 +81,23 @@ export async function initGame() {
         character.walk("right");
         break;
     }
+  }
+
+  window.addEventListener("keydown", (e) => {
+    pressedKeys.add(e.key);
+    moveCharacter();
   });
+
   window.addEventListener("keyup", (e) => {
+    pressedKeys.delete(e.key);
     switch (e.key) {
+      case " ":
       case "ArrowUp":
       case "ArrowDown":
       case "ArrowLeft":
       case "ArrowRight":
         character.stop();
+        moveCharacter();
         break;
     }
   });

@@ -6,17 +6,19 @@ type Direction = "up" | "down" | "left" | "right";
 interface ICharacter extends PIXI.Container {
   walk(direction: Direction): void;
   stop(): void;
+  shoot(direction: Direction): void;
 }
 
 const frameSize = { width: 100, height: 149.75 };
 
 function createFramesForAnimation(
   animationName: string,
-  vIndex: number
+  vIndex: number,
+  frameCount = 4
 ): PIXI.ISpritesheetData["frames"] {
   const frames: PIXI.ISpritesheetData["frames"] = {};
 
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < frameCount; i++) {
     frames[`${animationName}${i}`] = {
       frame: {
         x: i * frameSize.width,
@@ -34,8 +36,16 @@ function createFramesForAnimation(
 export async function createCharacter(): Promise<ICharacter> {
   const walkDownFrames = createFramesForAnimation("walk-down", 0);
   const walkUpFrames = createFramesForAnimation("walk-up", 1);
-  const walkLeftFrames = createFramesForAnimation("walk-left", 2);
-  const walkRightFrames = createFramesForAnimation("walk-right", 3);
+  const walkLeftFrames = createFramesForAnimation(
+    "walk-left",
+    2,
+    /* frameCount */ 5
+  );
+  const walkRightFrames = createFramesForAnimation(
+    "walk-right",
+    3,
+    /* frameCount */ 5
+  );
   // Create object to store sprite sheet data
   const characterSpriteData: PIXI.ISpritesheetData = {
     frames: {
@@ -50,8 +60,8 @@ export async function createCharacter(): Promise<ICharacter> {
     animations: {
       "walk-down": Object.keys(walkDownFrames),
       "walk-up": Object.keys(walkUpFrames),
-      "walk-left": Object.keys(walkLeftFrames),
-      "walk-right": Object.keys(walkRightFrames),
+      "walk-left": Object.keys(walkLeftFrames).slice(0, -1),
+      "walk-right": Object.keys(walkRightFrames).slice(0, -1),
     },
   };
 
@@ -71,6 +81,7 @@ export async function createCharacter(): Promise<ICharacter> {
 
   let onTick: PIXI.TickerCallback<unknown>;
 
+  character.zIndex = 1;
   character.addChild(standingFrame);
 
   character.walk = (direction) => {
@@ -111,13 +122,26 @@ export async function createCharacter(): Promise<ICharacter> {
   };
 
   character.stop = () => {
-    if (!currentWalkingDir) {
-      return;
-    }
     currentWalkingDir = undefined;
     app.ticker.remove(onTick);
     character.removeChildAt(0);
     character.addChild(standingFrame);
+  };
+
+  character.shoot = (direction) => {
+    character.stop();
+    switch (direction) {
+      case "left":
+        character.removeChildAt(0);
+        character.addChild(new PIXI.Sprite(spriteSheet.textures["walk-left4"]));
+        break;
+      case "right":
+        character.removeChildAt(0);
+        character.addChild(
+          new PIXI.Sprite(spriteSheet.textures["walk-right4"])
+        );
+        break;
+    }
   };
   return character;
 }

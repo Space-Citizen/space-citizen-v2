@@ -67,28 +67,35 @@ function findWallType(x: number, y: number, cells: ICell[]): string {
 export function createMap(cells: ICell[]): PIXI.Container {
   const container = new PIXI.Container();
 
-  cells
-    .sort((a, b) => (a.kind === "wall" && a.kind === b.kind ? 1 : -1))
-    .forEach((cell) => {
-      let sprite: PIXI.Sprite;
-      switch (cell.kind) {
-        case "floor":
-          sprite = PIXI.Sprite.from("assets/floor.png");
-          break;
-        case "wall":
-          sprite = PIXI.Sprite.from(
-            `assets/wall-${findWallType(cell.x, cell.y, cells)}.png`
-          );
-          break;
-        default:
-          throw new Error(`Unknown cell kind: ${cell.kind}`);
-      }
-      sprite.x = cell.x * cellSize;
-      sprite.y = cell.y * cellSize;
-      sprite.anchor.set(0, 1);
-      sprite.width = cellSize;
+  function addMapElement(cell: ICell) {
+    let sprite: PIXI.Sprite;
 
-      container.addChild(sprite);
-    });
+    switch (cell.kind) {
+      case "floor":
+        sprite = PIXI.Sprite.from("assets/floor.png");
+        sprite.zIndex = 0;
+        break;
+      case "wall":
+        sprite = PIXI.Sprite.from(
+          `assets/wall-${findWallType(cell.x, cell.y, cells)}.png`
+        );
+        sprite.zIndex = 999;
+        // for walls, always add a floor tile underneath
+        addMapElement({ ...cell, kind: "floor" });
+        break;
+      default:
+        throw new Error(`Unknown cell kind: ${cell.kind}`);
+    }
+    sprite.x = cell.x * cellSize;
+    sprite.y = cell.y * cellSize;
+    sprite.anchor.set(0, 1);
+    sprite.width = cellSize;
+
+    container.addChild(sprite);
+  }
+
+  cells.forEach((cell) => {
+    addMapElement(cell);
+  });
   return container;
 }
