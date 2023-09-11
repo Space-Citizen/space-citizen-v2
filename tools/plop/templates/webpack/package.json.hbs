@@ -1,34 +1,11 @@
-{
-  "name": "{{packageName}}",
-  "version": "0.0.1",
-  "private": true,
-  "main": "dist/index.js", "types": "dist/index.d.ts", "scripts": {
-    "start": "webpack serve --mode development",
-    "build": "yarn clean && yarn bundle",
-    "bundle": "webpack --mode production",
-    "clean": "rimraf ./dist", 
-    "lint": "eslint src/** --ext .ts --ext .tsx --fix",
-    "test": "jest --passWithNoTests",
-    "test:watch": "jest -w"
-  },
-  "dependencies": { 
-    "react": "18.1.0",
-    "react-dom": "18.1.0"
-  },
-  "devDependencies":
-    {
-      "@types/react": "~18.0.26",
-      "@types/react-dom": "^18.0.10",
-      "@types/jest": "^27.4.1",
-      "eslint-conf": "*",
-      "webpack": "^5.70.0",
-      "webpack-cli": "^4.9.2",
-      "copy-webpack-plugin": "^8.1.1",
-      "html-webpack-plugin": "^5.3.1",
-      "webpack-dev-server": "^4.7.4",
-      "ts-loader": "^8.1.0",
-      "jest": "^27.5.1",
-      "rimraf": "^3.0.2",
-      "typescript": "^4.9.4"
-    }
-  }
+{ "name": "{{packageName}}", "version": "0.0.1", "private": true, "main":
+"dist/index.js", "types": "dist/index.d.ts", "scripts": { "start": "webpack
+serve --mode development", "build": "yarn clean && yarn bundle", "bundle":
+"webpack --mode production", "clean": "rimraf ./dist", "lint": "eslint src/**
+--ext .ts --ext .tsx --fix", "test": "jest --passWithNoTests", "test:watch":
+"jest -w" }, "dependencies": { "react": "18.1.0", "react-dom": "18.1.0" },
+"devDependencies": { "@types/react": "~18.0.26", "@types/react-dom": "^18.0.10",
+"@types/jest": "^27.4.1", "eslint-conf": "*", "webpack": "^5.70.0",
+"webpack-cli": "^4.9.2", "copy-webpack-plugin": "^8.1.1", "html-webpack-plugin":
+"^5.3.1", "webpack-dev-server": "^4.7.4", "ts-loader": "^8.1.0", "jest":
+"^27.5.1", "rimraf": "^3.0.2", "typescript": "^5.2.2" } }
