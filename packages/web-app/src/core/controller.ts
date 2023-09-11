@@ -2,7 +2,7 @@ import { Application } from "pixi.js";
 import { IEntity } from "../types";
 import { createCharacter } from "./character/character";
 import { Map } from "./map/map";
-import { defaultMapRaw } from "../constants";
+import { cellSize, defaultMapRaw } from "../constants";
 
 export const app = new Application({
   width: window.innerWidth,
@@ -52,6 +52,8 @@ export class Controller {
       } else {
         this.character.x = newX;
         this.character.y = newY;
+        // update the zIndex as we move down the map
+        this.character.zIndex = Math.ceil(newY / cellSize);
         this.map.container.y += yDelta;
         this.map.container.x += xDelta;
       }
