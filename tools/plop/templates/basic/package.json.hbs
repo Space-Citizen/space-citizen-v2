@@ -1,7 +1,24 @@
-{ "name": "{{packageName}}", "version": "0.0.1", "private": true, "main":
-"lib/index.js", "types": "lib/index.d.ts", "scripts": { "start": "tsc --watch",
-"build": "yarn clean && tsc", "clean": "rimraf ./lib", "lint": "eslint src/**
---ext .ts --ext .tsx --fix", "test": "jest --passWithNoTests", "test:watch":
-"jest -w" }, "dependencies": {}, "devDependencies": { "@types/jest": "^27.4.1",
-"eslint-conf": "*", "jest": "^27.5.1", "rimraf": "^3.0.2", "typescript":
-"^4.9.4" } }
+{
+  "name": "{{packageName}}",
+  "version": "0.0.1",
+  "private": true,
+  "main":
+  "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "start": "tsc --watch",
+    "build": "yarn clean && tsc",
+    "clean": "rimraf ./lib",
+    "lint": "eslint src/** --ext .ts --ext .tsx --fix",
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest -w"
+    },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/jest": "^27.4.1",
+    "eslint-conf": "*",
+    "jest": "^27.5.1",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.9.4"
+  }
+}
