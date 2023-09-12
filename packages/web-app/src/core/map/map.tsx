@@ -10,7 +10,7 @@ type SurroundingWallsMap = Record<
 
 export interface ICell<K extends CellKind = CellKind> {
   readonly kind: K;
-  readonly wallDirection?: "horizontal" | "vertical";
+  readonly assetName: string;
   readonly x: number;
   readonly y: number;
 }
@@ -22,19 +22,21 @@ export class Map {
   constructor(public readonly rawMap: number[][]) {
     this.cells = rawMap.reduce<ICell[]>((map, row, y) => {
       row.forEach((cell, x) => {
+        const kind = cell === 1 ? "wall" : "floor";
         map.push({
-          kind: cell === 1 ? "wall" : "floor",
-          wallDirection:
-            (x > 0 && row[x - 1] === 1) ||
-            (x + 1 < row.length && row[x + 1] === 1)
-              ? "horizontal"
-              : "vertical",
+          kind,
+          assetName: "", // will be set later on
           x,
           y,
         });
       });
       return map;
     }, []);
+
+    for (let i = 0; i < this.cells.length; i++) {
+      const cell = this.cells[i];
+      (cell.assetName as string) = this.findCellAsset(cell);
+    }
 
     this.cells.forEach((cell) => {
       this.addMapElement(cell);
@@ -54,23 +56,29 @@ export class Map {
 
   private addMapElement(cell: ICell) {
     let sprite: PIXI.Sprite;
-    const surroundingWalls = this.getSurroundingWalls(cell);
 
     switch (cell.kind) {
       case "floor":
-        sprite = PIXI.Sprite.from(
-          `assets/${this.findFloorType(surroundingWalls)}.png`
-        );
+        sprite = PIXI.Sprite.from(`assets/${cell.assetName}.png`);
         sprite.zIndex = 0;
         break;
       case "wall":
-        sprite = PIXI.Sprite.from(
-          `assets/${this.findWallType(surroundingWalls)}.png`
-        );
+        sprite = PIXI.Sprite.from(`assets/${cell.assetName}.png`);
         sprite.zIndex = cell.y;
         // for walls, always add a floor tile underneath
         !this.isEndOfRow(cell) &&
-          this.addMapElement({ ...cell, kind: "floor" });
+          this.addMapElement({
+            ...cell,
+            kind: "floor",
+            assetName:
+              // if the cell above is an horizontal wall, add a corner shadow
+              this.cells
+                .find((c) => c.x === cell.x && c.y === cell.y - 1)
+                ?.assetName.includes("horizontal")
+                ? "floor-shadow-corner"
+                : // otherwise, just use a regular left shadow
+                  "floor-shadow-left",
+          });
         break;
       default:
         throw new Error(`Unknown cell kind: ${cell.kind}`);
@@ -87,7 +95,13 @@ export class Map {
     return cell.x === this.rawMap[cell.y].length - 1;
   }
 
-  private getSurroundingWalls({ x, y }: ICell): SurroundingWallsMap {
+  private findCellAsset(cell: ICell): string {
+    return cell.kind === "wall"
+      ? this.findWallType(cell.x, cell.y)
+      : this.findFloorType(cell.x, cell.y);
+  }
+
+  private getSurroundingWalls(x: number, y: number): SurroundingWallsMap {
     const surroundingWalls: SurroundingWallsMap = {
       top: undefined,
       bottom: undefined,
@@ -118,23 +132,26 @@ export class Map {
     return surroundingWalls;
   }
 
-  private findFloorType(surroundingWalls: SurroundingWallsMap): string {
-    if (
-      surroundingWalls.self &&
-      surroundingWalls.top?.wallDirection === "horizontal"
-    ) {
-      return "floor-shadow-both";
+  private findFloorType(x: number, y: number): string {
+    const surroundingWalls = this.getSurroundingWalls(x, y);
+    if (surroundingWalls.self && surroundingWalls.top) {
+      return "floor-shadow-corner";
     }
     if (surroundingWalls.self) {
       return "floor-shadow-left";
     }
-    if (surroundingWalls.top?.wallDirection === "horizontal") {
+    if (surroundingWalls.top) {
+      // special case for right-corner-top assets, we want a corner shadow
+      if (surroundingWalls.top.assetName.includes("right-corner-top")) {
+        return "floor-shadow-top-left-half";
+      }
       return "floor-shadow-top";
     }
     return "floor";
   }
 
-  private findWallType(surroundingWalls: SurroundingWallsMap): string {
+  private findWallType(x: number, y: number): string {
+    const surroundingWalls = this.getSurroundingWalls(x, y);
     // if there is a wall to the left or right, it's a horizontal wall
     if (surroundingWalls.left && surroundingWalls.right) {
       if (surroundingWalls.bottom) {
