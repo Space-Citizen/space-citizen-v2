@@ -53,7 +53,7 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
         cell.asset = await createAnimation({
           frameSize: { width: 100, height: 200 },
           assetPath: "assets/door.png",
-          animationNames: ["open"],
+          animationNames: ["open", "close"],
           idleAnimationName: "open",
           animationSettings: {
             "*": {
