@@ -4,7 +4,6 @@ import { IEntity } from "../types";
 import { createCharacter } from "./character/character";
 import { Map } from "./map/map";
 import { cellSize, characterStart, defaultMapRaw } from "../constants";
-import { uiAPI } from "../react-ui/UIApi";
 import { InteractionManager } from "./interactionManager";
 
 export const app = new Application({
@@ -49,11 +48,6 @@ export class Controller {
       this.character,
       this.map,
       app
-    );
-
-    uiAPI.showDialog(
-      { message: "What is going on ..?" },
-      { dismissTimeout: 3000, animation: "text" }
     );
   }
 

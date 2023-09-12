@@ -110,7 +110,12 @@ export class InteractionManager {
         door.solid = false;
         (door.asset as IAnimation).switchAnimation("open");
         (door.asset as IAnimation).play();
-      } else {
+      } else if (
+        door.properties.open &&
+        // check if the character is in the door
+        (Math.abs(door.y * cellSize - y) < 25 ||
+          Math.abs(door.y * cellSize - y) > 100)
+      ) {
         door.properties.open = false;
         door.solid = true;
         (door.asset as IAnimation).switchAnimation("close");
