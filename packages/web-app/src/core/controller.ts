@@ -3,7 +3,7 @@ import { CRTFilter } from "@pixi/filter-crt";
 import { IEntity } from "../types";
 import { createCharacter } from "./character/character";
 import { Map } from "./map/map";
-import { cellSize, defaultMapRaw } from "../constants";
+import { cellSize, characterStart, defaultMapRaw } from "../constants";
 
 export const app = new Application({
   width: window.innerWidth,
@@ -24,18 +24,19 @@ export class Controller {
     // create the map
     this.map = new Map(defaultMapRaw);
     this.map.container.x = app.view.width / 2;
-    this.map.container.y = app.view.height / 2;
     app.stage.filterArea = app.screen;
     app.stage.filters = [new CRTFilter({ vignetting: 0.67 })];
 
     // create the character
     createCharacter().then((character) => {
       this.character = character;
-      character.x = this.map.container.width / 2;
-      character.y = this.map.container.height / 2;
-      character.pivot.x = character.width / 2;
+      character.x = characterStart.x * cellSize;
+      character.y = characterStart.y * cellSize;
+      character.pivot.x = character.width / 4;
       character.pivot.y = character.height / 2;
 
+      this.map.container.y =
+        app.view.height / 2 + characterStart.y * cellSize + character.height;
       this.map.container.addChild(character);
     });
     app.stage.addChild(this.map.container);

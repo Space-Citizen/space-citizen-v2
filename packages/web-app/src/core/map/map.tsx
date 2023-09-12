@@ -65,6 +65,9 @@ export class Map {
       case "wall":
         sprite = PIXI.Sprite.from(`assets/${cell.assetName}.png`);
         sprite.zIndex = cell.y;
+        const cellAbove = this.cells.find(
+          (c) => c.x === cell.x && c.y === cell.y - 1
+        );
         // for walls, always add a floor tile underneath
         !this.isEndOfRow(cell) &&
           this.addMapElement({
@@ -72,9 +75,9 @@ export class Map {
             kind: "floor",
             assetName:
               // if the cell above is an horizontal wall, add a corner shadow
-              this.cells
-                .find((c) => c.x === cell.x && c.y === cell.y - 1)
-                ?.assetName.includes("horizontal")
+
+              cellAbove?.assetName.includes("horizontal") ||
+              cellAbove?.assetName.includes("wall-vertical-T-right")
                 ? "floor-shadow-corner"
                 : // otherwise, just use a regular left shadow
                   "floor-shadow-left",
@@ -140,7 +143,10 @@ export class Map {
     if (surroundingWalls.self) {
       return "floor-shadow-left";
     }
-    if (surroundingWalls.top) {
+    if (
+      surroundingWalls.top &&
+      surroundingWalls.top.assetName.includes("horizontal")
+    ) {
       // special case for right-corner-top assets, we want a corner shadow
       if (surroundingWalls.top.assetName.includes("right-corner-top")) {
         return "floor-shadow-top-left-half";
@@ -160,6 +166,9 @@ export class Map {
       return "wall-horizontal";
     }
     if (surroundingWalls.top && surroundingWalls.bottom) {
+      if (surroundingWalls.right) {
+        return "wall-vertical-T-right";
+      }
       return "wall-vertical";
     }
     // if only a wall on the left
