@@ -17,6 +17,7 @@ export class Controller {
   private readonly pressedKeys = new Set();
   private character: IEntity;
   private map: Map;
+  private doorDialogDismiss: () => void;
 
   constructor() {
     window.addEventListener("keydown", this.onKeyDown);
@@ -80,6 +81,7 @@ export class Controller {
         tryToMove(-this.character.speed * delta, 0);
         break;
     }
+    this.checkInteractions();
   }
 
   public destroy() {
@@ -87,6 +89,20 @@ export class Controller {
     window.removeEventListener("keyup", this.onKeyUp);
     app.ticker.remove(this.renderLoop.bind(this));
   }
+
+  private checkInteractions = () => {
+    const { x, y } = this.character;
+    const cells = this.map.getCells(x, y, 1);
+
+    const hasDoor = cells.some((cell) => cell.kind === "door");
+    if (hasDoor && !this.doorDialogDismiss) {
+      this.doorDialogDismiss = uiAPI.showDialog("Press E to open a door");
+      return;
+    } else if (!hasDoor) {
+      this.doorDialogDismiss?.();
+      this.doorDialogDismiss = undefined;
+    }
+  };
 
   private onKeyDown = (event: KeyboardEvent) => {
     if (!event.key.includes("Arrow")) {

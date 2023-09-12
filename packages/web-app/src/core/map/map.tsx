@@ -18,10 +18,25 @@ export class Map {
   }
 
   public isWall(x: number, y: number): boolean {
+    const cell = this.getCell(x, y);
+    return !!cell.solid;
+  }
+
+  public getCell(x: number, y: number): ICell | undefined {
     const xCell = Math.round(x / cellSize);
     const yCell = Math.ceil(y / cellSize);
-    return (
-      this.cells.find((c) => c.x === xCell && c.y === yCell)?.solid ?? false
+    return this.cells.find((c) => c.x === xCell && c.y === yCell);
+  }
+  public getCells(x: number, y: number, radius: number): ICell[] {
+    const xCell = Math.round(x / cellSize);
+    const yCell = Math.ceil(y / cellSize);
+    const cells = this.cells.filter(
+      (c) =>
+        c.x >= xCell - radius &&
+        c.x <= xCell + radius &&
+        c.y >= yCell - radius &&
+        c.y <= yCell + radius
     );
+    return cells;
   }
 }
