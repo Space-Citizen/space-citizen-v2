@@ -8,3 +8,5 @@ export interface IEntity extends Container {
 }
 
 export type Direction = "up" | "down" | "left" | "right";
+
+export type Writeable<T> = { -readonly [P in keyof T]: T[P] };

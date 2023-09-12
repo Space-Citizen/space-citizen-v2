@@ -1,36 +1,66 @@
-import { ICell } from "../types";
+import { Sprite } from "pixi.js";
+import { FloorType, ICell, WallType } from "../types";
+import { Writeable } from "../../types";
+import { cellSize } from "../../constants";
 
 type SurroundingWallsMap = Record<
   "top" | "bottom" | "left" | "right" | "self",
-  undefined | ICell
+  undefined | ICell<"wall">
 >;
 
 export function parseMap(rawMap: number[][]): ICell[] {
   const cells = rawMap.reduce<ICell[]>((map, row, y) => {
     row.forEach((cell, x) => {
-      const kind = cell === 1 ? "wall" : "floor";
+      const kind = cell === 1 ? "wall" : cell === 2 ? "door" : "floor";
       map.push({
         kind,
-        assetName: "", // will be set later on
         x,
         y,
-      });
+        solid: kind === "wall" || kind === "door",
+      } as ICell); // casting to avoid setting asset now
+
+      // add a floor cell under the wall (except for the last column)
+      if (kind === "wall" && rawMap[y].length - 1 !== x) {
+        map.push({
+          kind: "floor",
+          x,
+          y,
+          solid: false,
+        } as ICell);
+      }
     });
     return map;
   }, []);
 
   for (let i = 0; i < cells.length; i++) {
-    const cell = cells[i];
-    (cell.assetName as string) = findCellAsset(cell, cells);
+    const cell = cells[i] as Writeable<ICell>;
+    switch (cell.kind) {
+      case "wall":
+        cell.properties = { wallType: findWallType(cell, cells) };
+        cell.asset = Sprite.from(
+          `assets/walls/${(cell as ICell<"wall">).properties.wallType}.png`
+        );
+        cell.asset.zIndex = cell.y;
+        break;
+      case "floor":
+        cell.properties = { floorType: findFloorType(cell, cells) };
+        cell.asset = Sprite.from(
+          `assets/floors/${(cell as ICell<"floor">).properties.floorType}.png`
+        );
+        cell.asset.zIndex = -1;
+        break;
+      case "door":
+        cell.asset = Sprite.from(`assets/door.png`);
+        cell.asset.zIndex = cell.y;
+        break;
+    }
+    cell.asset.x = cell.x * cellSize;
+    cell.asset.y = cell.y * cellSize;
+    (cell.asset as Sprite).anchor.set(0, 1);
+    cell.asset.width = cellSize;
   }
 
   return cells;
-}
-
-function findCellAsset(cell: ICell, cells: ICell[]): string {
-  return cell.kind === "wall"
-    ? findWallType(cell.x, cell.y, cells)
-    : findFloorType(cell.x, cell.y, cells);
 }
 
 function getSurroundingWalls(
@@ -50,86 +80,91 @@ function getSurroundingWalls(
       return;
     }
     if (cell.x === x && cell.y === y) {
-      surroundingWalls.self = cell;
+      surroundingWalls.self = cell as ICell<"wall">;
     }
     if (cell.x === x - 1 && cell.y === y) {
-      surroundingWalls.left = cell;
+      surroundingWalls.left = cell as ICell<"wall">;
     }
     if (cell.x === x + 1 && cell.y === y) {
-      surroundingWalls.right = cell;
+      surroundingWalls.right = cell as ICell<"wall">;
     }
     if (cell.x === x && cell.y === y - 1) {
-      surroundingWalls.top = cell;
+      surroundingWalls.top = cell as ICell<"wall">;
     }
     if (cell.x === x && cell.y === y + 1) {
-      surroundingWalls.bottom = cell;
+      surroundingWalls.bottom = cell as ICell<"wall">;
     }
   });
   return surroundingWalls;
 }
 
-function findFloorType(x: number, y: number, cells: ICell[]): string {
+function findFloorType({ x, y }: ICell, cells: ICell[]): FloorType {
   const surroundingWalls = getSurroundingWalls(x, y, cells);
-  if (surroundingWalls.self && surroundingWalls.top) {
-    return "floor-shadow-corner";
-  }
+
   if (surroundingWalls.self) {
-    return "floor-shadow-left";
+    const topWallType = surroundingWalls.top?.properties.wallType;
+    if (topWallType?.includes("horizontal") || topWallType === "vertical-T") {
+      return "floor-shadow-corner";
+    } else {
+      return "floor-shadow-left";
+    }
   }
   if (
     surroundingWalls.top &&
-    surroundingWalls.top.assetName.includes("horizontal")
+    surroundingWalls.top.properties.wallType.includes("horizontal")
   ) {
     // special case for right-corner-top assets, we want a corner shadow
-    if (surroundingWalls.top.assetName.includes("right-corner-top")) {
-      return "floor-shadow-top-left-half";
+    if (
+      surroundingWalls.top.properties.wallType === "horizontal-right-corner-top"
+    ) {
+      return "floor-shadow-top-left";
     }
     return "floor-shadow-top";
   }
   return "floor";
 }
 
-function findWallType(x: number, y: number, cells: ICell[]): string {
+function findWallType({ x, y }: ICell, cells: ICell[]): WallType {
   const surroundingWalls = getSurroundingWalls(x, y, cells);
   // if there is a wall to the left or right, it's a horizontal wall
   if (surroundingWalls.left && surroundingWalls.right) {
     if (surroundingWalls.bottom) {
-      return "wall-horizontal-T";
+      return "horizontal-T";
     }
-    return "wall-horizontal";
+    return "horizontal";
   }
   if (surroundingWalls.top && surroundingWalls.bottom) {
     if (surroundingWalls.right) {
-      return "wall-vertical-T-right";
+      return "vertical-T";
     }
-    return "wall-vertical";
+    return "vertical";
   }
   // if only a wall on the left
   if (surroundingWalls.left) {
     if (surroundingWalls.bottom) {
-      return "wall-horizontal-end-right-corner-bottom";
+      return "horizontal-right-corner-bottom";
     } else if (surroundingWalls.top) {
-      return "wall-horizontal-end-right-corner-top";
+      return "horizontal-right-corner-top";
     }
-    return "wall-horizontal-end-right";
+    return "horizontal-right";
   }
   // if only a wall on the right
   if (surroundingWalls.right) {
     if (surroundingWalls.bottom) {
-      return "wall-horizontal-end-left-corner-bottom";
+      return "horizontal-left-corner-bottom";
     } else if (surroundingWalls.top) {
-      return "wall-horizontal-end-left-corner-top";
+      return "horizontal-left-corner-top";
     }
-    return "wall-horizontal-end-left";
+    return "horizontal-left";
   }
   // if only a wall on the top
   if (surroundingWalls.top) {
-    return "wall-vertical-end-bottom";
+    return "vertical-bottom";
   }
   // if only a wall on the bottom
   if (surroundingWalls.bottom) {
-    return "wall-vertical-end-top";
+    return "vertical-top";
   }
   // if no walls around, it's a pillar
-  return "wall-pillar";
+  return "pillar";
 }
