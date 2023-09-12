@@ -54,7 +54,7 @@ export class Map {
 
   private addMapElement(cell: ICell) {
     let sprite: PIXI.Sprite;
-    const surroundingWalls = this.getSurrondingWalls(cell);
+    const surroundingWalls = this.getSurroundingWalls(cell);
 
     switch (cell.kind) {
       case "floor":
@@ -69,7 +69,8 @@ export class Map {
         );
         sprite.zIndex = cell.y;
         // for walls, always add a floor tile underneath
-        this.addMapElement({ ...cell, kind: "floor" });
+        !this.isEndOfRow(cell) &&
+          this.addMapElement({ ...cell, kind: "floor" });
         break;
       default:
         throw new Error(`Unknown cell kind: ${cell.kind}`);
@@ -82,7 +83,11 @@ export class Map {
     this.container.addChild(sprite);
   }
 
-  private getSurrondingWalls({ x, y }: ICell): SurroundingWallsMap {
+  private isEndOfRow(cell: ICell): boolean {
+    return cell.x === this.rawMap[cell.y].length - 1;
+  }
+
+  private getSurroundingWalls({ x, y }: ICell): SurroundingWallsMap {
     const surroundingWalls: SurroundingWallsMap = {
       top: undefined,
       bottom: undefined,
@@ -142,12 +147,19 @@ export class Map {
     }
     // if only a wall on the left
     if (surroundingWalls.left) {
+      if (surroundingWalls.bottom) {
+        return "wall-horizontal-end-right-corner-bottom";
+      } else if (surroundingWalls.top) {
+        return "wall-horizontal-end-right-corner-top";
+      }
       return "wall-horizontal-end-right";
     }
     // if only a wall on the right
     if (surroundingWalls.right) {
       if (surroundingWalls.bottom) {
-        return "wall-horizontal-end-left-corner";
+        return "wall-horizontal-end-left-corner-bottom";
+      } else if (surroundingWalls.top) {
+        return "wall-horizontal-end-left-corner-top";
       }
       return "wall-horizontal-end-left";
     }

@@ -1913,6 +1913,11 @@
   resolved "https://registry.yarnpkg.com/@pixi/filter-color-matrix/-/filter-color-matrix-7.2.4.tgz#4c9e6e174b27635ce5e92f34d372366b901e250f"
   integrity sha512-DFtayybYXoUh73eHUFRK5REbi1t3FZuVUnaQTj+euHKF9L7EaYc3Q9wctpx1WPRcwkqEX50M4SNFhxpA7Pxtaw==
 
+"@pixi/filter-crt@^5.1.1":
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/@pixi/filter-crt/-/filter-crt-5.1.1.tgz#de65792845c3bf6dbf82ef5f794dca4073b64a32"
+  integrity sha512-w+rRbR7eTsPf18QPB68Wiyx8laC+v7fYb3hRVhnq/j6yRUJKQgg4HK5KLP9jfUJ9FJvxy4bzLSDQulvxbOMJZg==
+
 "@pixi/filter-displacement@7.2.4":
   version "7.2.4"
   resolved "https://registry.yarnpkg.com/@pixi/filter-displacement/-/filter-displacement-7.2.4.tgz#39da0592966079d7e194be46494b8055b5eebda2"

@@ -1,4 +1,5 @@
 import { Application } from "pixi.js";
+import { CRTFilter } from "@pixi/filter-crt";
 import { IEntity } from "../types";
 import { createCharacter } from "./character/character";
 import { Map } from "./map/map";
@@ -8,7 +9,7 @@ export const app = new Application({
   width: window.innerWidth,
   height: window.innerHeight,
   resizeTo: window,
-  backgroundColor: "#404059",
+  backgroundColor: "#000000",
 });
 
 export class Controller {
@@ -24,6 +25,8 @@ export class Controller {
     this.map = new Map(defaultMapRaw);
     this.map.container.x = app.view.width / 2;
     this.map.container.y = app.view.height / 2;
+    app.stage.filterArea = app.screen;
+    app.stage.filters = [new CRTFilter({ vignetting: 0.67 })];
 
     // create the character
     createCharacter().then((character) => {
