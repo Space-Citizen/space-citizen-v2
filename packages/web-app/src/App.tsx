@@ -15,6 +15,7 @@ export function App(): React.ReactElement {
     document.body.appendChild(wrapper);
 
     const controller = new Controller();
+    controller.init();
 
     return controller.destroy;
   }, []);

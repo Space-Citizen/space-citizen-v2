@@ -3,22 +3,32 @@ import {
   BaseTexture,
   ISpritesheetData,
   Spritesheet,
+  Container,
 } from "pixi.js";
+import { Writeable } from "../../types";
+
+interface IAnimationSettings
+  extends Partial<Pick<AnimatedSprite, "loop" | "animationSpeed">> {
+  autoPlay?: boolean;
+}
 
 interface ICreateAnimationOptions<
-  AN extends readonly string[] = readonly string[]
+  AN extends readonly string[] = readonly string[],
 > {
   readonly frameSize: { width: number; height: number };
   readonly animationNames: AN;
   readonly assetPath: string;
   readonly idleAnimationName: AN[number];
-  readonly animationSettings?: Partial<Record<AN[number] | "*", Partial<Pick<AnimatedSprite, "loop" | "animationSpeed">>>>;
+  readonly animationSettings?: Partial<
+    Record<AN[number] | "*", IAnimationSettings>
+  >;
 }
 
-interface IAnimationSet<AN extends readonly string[]> {
-  readonly animation: AnimatedSprite;
+export interface IAnimation<AN extends readonly string[] = string[]>
+  extends Container {
   readonly spriteSheet: Spritesheet;
   readonly switchAnimation: (animationName: AN[number]) => void;
+  readonly play: () => void;
 }
 
 function createFramesForAnimation(
@@ -37,19 +47,18 @@ function createFramesForAnimation(
         h: frameSize.height,
       },
       sourceSize: { w: frameSize.width, h: frameSize.height },
-      spriteSourceSize: { x: 0, y: 0 },
     };
   }
   return frames;
 }
 
-export async function createAnimationSet<const AN extends readonly string[]>({
+export async function createAnimation<const AN extends readonly string[]>({
   frameSize,
   animationNames,
   assetPath,
   idleAnimationName,
-  animationSettings
-}: ICreateAnimationOptions<AN>): Promise<IAnimationSet<AN>> {
+  animationSettings,
+}: ICreateAnimationOptions<AN>): Promise<IAnimation<AN>> {
   const frames = animationNames.map((animationName, vIndex) =>
     createFramesForAnimation(animationName, vIndex, frameSize)
   );
@@ -73,20 +82,32 @@ export async function createAnimationSet<const AN extends readonly string[]>({
   // Generate all the Textures asynchronously
   await spriteSheet.parse();
 
-  const animationSet: IAnimationSet<AN> = {
-    switchAnimation: (animationName) => {
-      (animationSet.animation as AnimatedSprite) = new AnimatedSprite(
-        spriteSheet.animations[animationName]
+  const animation = new Container() as IAnimation<AN>;
+
+  const switchAnimation: IAnimation<AN>["switchAnimation"] = (
+    animationName
+  ) => {
+    animation.children.length > 0 && animation.removeChildAt(0);
+    const animatedSprite = new AnimatedSprite(
+      spriteSheet.animations[animationName]
+    );
+    animation.addChild(animatedSprite);
+    if (animationSettings) {
+      Object.assign(
+        animatedSprite,
+        animationSettings["*"],
+        animationSettings[animationName]
       );
-      if (animationSettings) {
-        Object.assign(animationSet.animation, animationSettings["*"], animationSettings[animationName]);
-      }
-      animationSet.animation.play();
-    },
-    spriteSheet,
-    // start by setting the idle animation
-    animation: new AnimatedSprite(spriteSheet.animations[idleAnimationName]),
+      (animatedSprite as IAnimationSettings)?.autoPlay && animatedSprite.play();
+    }
   };
 
-  return animationSet;
+  (animation as Writeable<IAnimation<AN>>).switchAnimation = switchAnimation;
+  (animation as Writeable<IAnimation<AN>>).spriteSheet = spriteSheet;
+  (animation as Writeable<IAnimation<AN>>).play = () =>
+    (animation.children[0] as AnimatedSprite)?.play();
+  // start by setting the idle animation
+  animation.switchAnimation(idleAnimationName);
+
+  return animation;
 }

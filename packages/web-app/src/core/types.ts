@@ -39,11 +39,11 @@ type CellProperties<K extends CellKind> = K extends "floor"
   : never;
 
 export interface ICell<K extends CellKind = CellKind> {
-  readonly kind: K;
-  readonly asset: Sprite | Container;
-  readonly x: number;
-  readonly y: number;
+  kind: K;
+  asset: Sprite | Container;
+  x: number;
+  y: number;
   // If true, the cell is not walkable.
-  readonly solid: boolean;
-  readonly properties: CellProperties<K>;
+  solid: boolean;
+  properties: CellProperties<K>;
 }

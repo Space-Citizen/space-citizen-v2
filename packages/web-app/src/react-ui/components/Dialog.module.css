@@ -5,22 +5,56 @@
   transform: translateX(-50%);
   z-index: 5;
   background-color: rgba(0, 0, 0, 0.5);
+  align-items: center;
+  color: white;
+  display: flex;
+  flex-direction: row;
 }
 
-@keyframes text-animation {
-  from {width: 0%;}
-  to {width: 100%;}
+@keyframes text {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.dialog-key {
+  width: 50px;
+  height: 50px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 40px;
+  border: 3px gold solid;
 }
 
 .dialog-content {
-  animation-name: text-animation;
-  animation-duration: 1s;
-  animation-timing-function: linear;
-  overflow:hidden;
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: white;
   padding: 10px;
   font-size: 25px;
   font-family: pixel-font, sans-serif;
+}
+
+.dialog-animation-text {
+  animation-name: text;
+  animation-duration: 1s;
+  animation-timing-function: linear;
+}
+
+.dialog-animation-fade {
+  animation-name: fadeIn;
+  animation-duration: 200ms;
+  animation-timing-function: linear;
 }

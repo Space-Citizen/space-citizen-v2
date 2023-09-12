@@ -7,6 +7,7 @@ export interface IUIComponent {
     key?: string;
   };
   type: IComponentType;
+  options?: IShowDialogOptions;
 }
 
 export type Event = "new" | "delete";
@@ -15,6 +16,11 @@ export type EventData<E extends Event> = E extends "new"
   : E extends "delete"
   ? { id: string }
   : undefined;
+
+export interface IShowDialogOptions {
+  dismissTimeout?: number;
+  animation?: "fade" | "text";
+}
 
 export type EventCallback<E extends Event = Event> = (
   event: E,
@@ -34,18 +40,22 @@ class UIApi {
    *
    * @returns A function that can be called to close the dialog.
    */
-  public showDialog(message: string, dismissTimeout?: number): () => void {
+  public showDialog(
+    content: IUIComponent["content"],
+    options?: IShowDialogOptions
+  ): () => void {
     const id = (this.eventCounter++).toString();
     this.listener?.("new", {
       id,
       type: "dialog",
-      content: { message },
+      content,
+      options,
     });
 
     const dismiss = () => this.closeDialog(id);
 
-    if (dismissTimeout) {
-      setTimeout(dismiss, dismissTimeout);
+    if (options?.dismissTimeout) {
+      setTimeout(dismiss, options.dismissTimeout);
     }
 
     return dismiss;

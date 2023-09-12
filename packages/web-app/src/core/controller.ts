@@ -5,6 +5,7 @@ import { createCharacter } from "./character/character";
 import { Map } from "./map/map";
 import { cellSize, characterStart, defaultMapRaw } from "../constants";
 import { uiAPI } from "../react-ui/UIApi";
+import { InteractionManager } from "./interactionManager";
 
 export const app = new Application({
   width: window.innerWidth,
@@ -14,130 +15,49 @@ export const app = new Application({
 });
 
 export class Controller {
-  private readonly pressedKeys = new Set();
   private character: IEntity;
   private map: Map;
-  private doorDialogDismiss: () => void;
+  private interactionManager: InteractionManager;
 
   constructor() {
-    window.addEventListener("keydown", this.onKeyDown);
-    window.addEventListener("keyup", this.onKeyUp);
-
     // create the map
     this.map = new Map(defaultMapRaw);
-    this.map.container.x = app.view.width / 2;
     app.stage.filterArea = app.screen;
     app.stage.filters = [new CRTFilter({ vignetting: 0.67 })];
-
-    // create the character
-    createCharacter().then((character) => {
-      this.character = character;
-      character.x = characterStart.x * cellSize;
-      character.y = characterStart.y * cellSize;
-      character.pivot.x = 0;
-      character.pivot.y = character.height / 2;
-
-      this.map.container.y =
-        app.view.height / 2 + characterStart.y * cellSize + character.height;
-      this.map.container.addChild(character);
-    });
-    app.stage.addChild(this.map.container);
-    app.ticker.add(this.renderLoop.bind(this));
-
-    uiAPI.showDialog("What is going on ..?", 5000);
   }
 
-  public renderLoop(delta: number): void {
-    if (!this.character || !this.character.walkDirection) {
-      return;
-    }
+  public async init() {
+    // init the map
+    this.map.init();
+    this.map.container.x = app.view.width / 2;
+    // create and init the character
+    this.character = await createCharacter();
+    this.character.x = characterStart.x * cellSize;
+    this.character.y = characterStart.y * cellSize;
+    this.character.pivot.x = 0;
+    this.character.pivot.y = this.character.height / 2;
 
-    const tryToMove = (xDelta: number, yDelta: number) => {
-      const newX = this.character.x + xDelta * -1;
-      const newY = this.character.y + yDelta * -1;
-      if (this.map.isWall(newX, newY)) {
-        this.character.stopWalking();
-      } else {
-        this.character.x = newX;
-        this.character.y = newY;
-        // update the zIndex as we move down the map
-        this.character.zIndex = Math.ceil(newY / cellSize);
-        this.map.container.y += yDelta;
-        this.map.container.x += xDelta;
-      }
-    };
+    this.map.container.y =
+      app.view.height / 2 + characterStart.y * cellSize + this.character.height;
+    // add the character to the map
+    this.map.container.addChild(this.character);
+    // add the map to the stage.
+    app.stage.addChild(this.map.container);
 
-    switch (this.character.walkDirection) {
-      case "up":
-        tryToMove(0, this.character.speed * delta);
-        break;
-      case "down":
-        tryToMove(0, -this.character.speed * delta);
-        break;
-      case "left":
-        tryToMove(this.character.speed * delta, 0);
-        break;
-      case "right":
-        tryToMove(-this.character.speed * delta, 0);
-        break;
-    }
-    this.checkInteractions();
+    // create the interaction manager
+    this.interactionManager = new InteractionManager(
+      this.character,
+      this.map,
+      app
+    );
+
+    uiAPI.showDialog(
+      { message: "What is going on ..?" },
+      { dismissTimeout: 3000, animation: "text" }
+    );
   }
 
   public destroy() {
-    window.removeEventListener("keydown", this.onKeyDown);
-    window.removeEventListener("keyup", this.onKeyUp);
-    app.ticker.remove(this.renderLoop.bind(this));
-  }
-
-  private checkInteractions = () => {
-    const { x, y } = this.character;
-    const cells = this.map.getCells(x, y, 1);
-
-    const hasDoor = cells.some((cell) => cell.kind === "door");
-    if (hasDoor && !this.doorDialogDismiss) {
-      this.doorDialogDismiss = uiAPI.showDialog("Press E to open a door");
-      return;
-    } else if (!hasDoor) {
-      this.doorDialogDismiss?.();
-      this.doorDialogDismiss = undefined;
-    }
-  };
-
-  private onKeyDown = (event: KeyboardEvent) => {
-    if (!event.key.includes("Arrow")) {
-      return;
-    }
-    this.pressedKeys.add(event.key);
-    this.updateEntity();
-  };
-
-  private onKeyUp = (event: KeyboardEvent) => {
-    if (!event.key.includes("Arrow")) {
-      return;
-    }
-    this.pressedKeys.delete(event.key);
-    this.updateEntity();
-  };
-
-  private updateEntity() {
-    const key = this.pressedKeys.values().next().value;
-    switch (key) {
-      case "ArrowUp":
-        this.character.walk("up");
-        break;
-      case "ArrowDown":
-        this.character.walk("down");
-        break;
-      case "ArrowLeft":
-        this.character.walk("left");
-        break;
-      case "ArrowRight":
-        this.character.walk("right");
-        break;
-      default:
-        this.character.stopWalking();
-        break;
-    }
+    this.interactionManager.destroy();
   }
 }

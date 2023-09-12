@@ -1,9 +1,9 @@
 import * as PIXI from "pixi.js";
-import { createAnimationSet } from "../sprites/createAnimationSet";
+import { createAnimation } from "../sprites/createAnimation";
 import type { IEntity } from "../../types";
 
 export async function createCharacter(): Promise<IEntity> {
-  const animationSet = await createAnimationSet({
+  const animation = await createAnimation({
     frameSize: { width: 100, height: 149.75 },
     assetPath: "assets/character-sprite.png",
     animationNames: ["walk-down", "walk-up", "walk-left", "walk-right", "idle"],
@@ -12,8 +12,10 @@ export async function createCharacter(): Promise<IEntity> {
       "*": {
         animationSpeed: 0.1666,
         loop: true,
+        autoPlay: true,
       },
       idle: {
+        autoPlay: true,
         animationSpeed: 0.0666,
       },
     },
@@ -22,6 +24,7 @@ export async function createCharacter(): Promise<IEntity> {
   const character = new PIXI.Container() as IEntity;
   character.zIndex = 1;
   character.speed = 5;
+  character.addChild(animation);
 
   character.walk = (direction) => {
     // if we are already walking in this direction, do nothing
@@ -33,17 +36,13 @@ export async function createCharacter(): Promise<IEntity> {
     // update walking direction
     character.walkDirection = direction;
     // change animation to
-    animationSet.switchAnimation(`walk-${direction}`);
-    character.removeChildAt(0);
-    character.addChild(animationSet.animation);
+    animation.switchAnimation(`walk-${direction}`);
   };
 
   character.stopWalking = () => {
     character.walkDirection = undefined;
-    character.children.length > 0 && character.removeChildAt(0);
     // switch back to the idle animation
-    animationSet.switchAnimation("idle");
-    character.addChild(animationSet.animation);
+    animation.switchAnimation("idle");
   };
 
   // initialize the character to be standing

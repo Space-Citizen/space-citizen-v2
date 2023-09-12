@@ -1,14 +1,14 @@
 import { Sprite } from "pixi.js";
 import { FloorType, ICell, WallType } from "../types";
-import { Writeable } from "../../types";
 import { cellSize } from "../../constants";
+import { createAnimation } from "../sprites/createAnimation";
 
 type SurroundingWallsMap = Record<
   "top" | "bottom" | "left" | "right" | "self",
   undefined | ICell<"wall">
 >;
 
-export function parseMap(rawMap: number[][]): ICell[] {
+export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
   const cells = rawMap.reduce<ICell[]>((map, row, y) => {
     row.forEach((cell, x) => {
       const kind = cell === 1 ? "wall" : cell === 2 ? "door" : "floor";
@@ -20,7 +20,7 @@ export function parseMap(rawMap: number[][]): ICell[] {
       } as ICell); // casting to avoid setting asset now
 
       // add a floor cell under the wall (except for the last column)
-      if (kind === "wall" && rawMap[y].length - 1 !== x) {
+      if ((kind === "wall" || kind === "door") && rawMap[y].length - 1 !== x) {
         map.push({
           kind: "floor",
           x,
@@ -33,7 +33,7 @@ export function parseMap(rawMap: number[][]): ICell[] {
   }, []);
 
   for (let i = 0; i < cells.length; i++) {
-    const cell = cells[i] as Writeable<ICell>;
+    const cell = cells[i];
     switch (cell.kind) {
       case "wall":
         cell.properties = { wallType: findWallType(cell, cells) };
@@ -50,13 +50,27 @@ export function parseMap(rawMap: number[][]): ICell[] {
         cell.asset.zIndex = -1;
         break;
       case "door":
-        cell.asset = Sprite.from(`assets/door.png`);
+        cell.asset = await createAnimation({
+          frameSize: { width: 100, height: 200 },
+          assetPath: "assets/door.png",
+          animationNames: ["open"],
+          idleAnimationName: "open",
+          animationSettings: {
+            "*": {
+              animationSpeed: 0.1666,
+              loop: false,
+            },
+          },
+        });
+        cell.properties = { open: false };
         cell.asset.zIndex = cell.y;
         break;
     }
     cell.asset.x = cell.x * cellSize;
     cell.asset.y = cell.y * cellSize;
-    (cell.asset as Sprite).anchor.set(0, 1);
+    "anchor" in cell.asset
+      ? cell.asset.anchor.set(0, 1)
+      : cell.asset.pivot.set(0, cell.asset.height);
     cell.asset.width = cellSize;
   }
 
