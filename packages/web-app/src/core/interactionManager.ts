@@ -38,7 +38,15 @@ export class InteractionManager {
     const tryToMove = (xDelta: number, yDelta: number) => {
       const newX = this.character.x + xDelta * -1;
       const newY = this.character.y + yDelta * -1;
-      if (this.map.isWall(newX, newY)) {
+      // Extra margin to the right side to avoid getting stuck on the wall
+      const rightSideExtraMargin = 30;
+      if (
+        this.map.isWall(
+          newX + this.character.width / 2 - rightSideExtraMargin,
+          newY
+        ) ||
+        this.map.isWall(newX - this.character.width / 2, newY)
+      ) {
         this.character.stopWalking();
       } else {
         this.character.x = newX;

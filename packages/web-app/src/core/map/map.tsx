@@ -20,6 +20,17 @@ export class Map {
 
   public isWall(x: number, y: number): boolean {
     const cell = this.getCell(x, y);
+
+    // vertical walls to the left of the player needs to be checked differently.
+    // Since they have a width lower that the cell size, we need to check if the player is
+    // close enough to the wall to be considered colliding with it.
+    if (
+      cell.kind === "wall" &&
+      (cell as ICell<"wall">).properties.wallType.includes("vertical") &&
+      x > cell.x * cellSize
+    ) {
+      return Math.abs(cell.x * cellSize - x) < 0;
+    }
     return !!cell.solid;
   }
 

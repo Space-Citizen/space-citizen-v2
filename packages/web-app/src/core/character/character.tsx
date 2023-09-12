@@ -19,6 +19,7 @@ export async function createCharacter(): Promise<IEntity> {
         animationSpeed: 0.0666,
       },
     },
+    scale: "1.4",
   });
 
   const character = new PIXI.Container() as IEntity;

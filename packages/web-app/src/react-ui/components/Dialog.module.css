@@ -1,6 +1,6 @@
 .dialog {
   position: absolute;
-  top: calc(50% - 150px);
+  top: calc(50% - 200px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;

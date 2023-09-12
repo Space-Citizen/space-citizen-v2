@@ -22,6 +22,7 @@ interface ICreateAnimationOptions<
   readonly animationSettings?: Partial<
     Record<AN[number] | "*", IAnimationSettings>
   >;
+  readonly scale?: `${number}`;
 }
 
 export interface IAnimation<AN extends readonly string[] = string[]>
@@ -58,6 +59,7 @@ export async function createAnimation<const AN extends readonly string[]>({
   assetPath,
   idleAnimationName,
   animationSettings,
+  scale = "1",
 }: ICreateAnimationOptions<AN>): Promise<IAnimation<AN>> {
   const frames = animationNames.map((animationName, vIndex) =>
     createFramesForAnimation(animationName, vIndex, frameSize)
@@ -65,7 +67,7 @@ export async function createAnimation<const AN extends readonly string[]>({
   const spriteData: ISpritesheetData = {
     frames: Object.assign({}, ...frames),
     meta: {
-      scale: "1",
+      scale,
     },
     animations: frames.reduce<ISpritesheetData["animations"]>(
       (acc, animationFrames, i) => {
