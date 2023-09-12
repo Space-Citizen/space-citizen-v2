@@ -1,5 +1,7 @@
 import * as React from "react";
+import "./App.module.css";
 import { Controller, app } from "./core/controller";
+import { UIController } from "./react-ui/UIController";
 
 export function App(): React.ReactElement {
   React.useEffect(() => {
@@ -7,11 +9,7 @@ export function App(): React.ReactElement {
     // can then insert into the DOM
 
     const wrapper = document.createElement("div");
-    wrapper.style.width = "100%";
-    wrapper.style.height = "100%";
-    wrapper.style.position = "absolute";
-    wrapper.style.top = "0";
-    wrapper.style.left = "0";
+    wrapper.className = "game-canvas";
 
     wrapper.appendChild(app.view as HTMLCanvasElement);
     document.body.appendChild(wrapper);
@@ -20,5 +18,6 @@ export function App(): React.ReactElement {
 
     return controller.destroy;
   }, []);
-  return <div>hello</div>;
+
+  return <UIController />;
 }

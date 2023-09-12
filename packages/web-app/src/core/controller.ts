@@ -4,6 +4,7 @@ import { IEntity } from "../types";
 import { createCharacter } from "./character/character";
 import { Map } from "./map/map";
 import { cellSize, characterStart, defaultMapRaw } from "../constants";
+import { uiAPI } from "../react-ui/UIApi";
 
 export const app = new Application({
   width: window.innerWidth,
@@ -32,7 +33,7 @@ export class Controller {
       this.character = character;
       character.x = characterStart.x * cellSize;
       character.y = characterStart.y * cellSize;
-      character.pivot.x = character.width / 4;
+      character.pivot.x = 0;
       character.pivot.y = character.height / 2;
 
       this.map.container.y =
@@ -41,6 +42,8 @@ export class Controller {
     });
     app.stage.addChild(this.map.container);
     app.ticker.add(this.renderLoop.bind(this));
+
+    uiAPI.showDialog("What is going on ..?", 5000);
   }
 
   public renderLoop(delta: number): void {
@@ -82,6 +85,7 @@ export class Controller {
   public destroy() {
     window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("keyup", this.onKeyUp);
+    app.ticker.remove(this.renderLoop.bind(this));
   }
 
   private onKeyDown = (event: KeyboardEvent) => {
