@@ -1,6 +1,7 @@
 import { Container } from "pixi.js";
 import { IAnimation, createAnimation } from "../sprites/createAnimation";
 import type { Direction, IEntity } from "../../types";
+import { cellSize } from "../../constants";
 
 export class Character extends Container implements IEntity {
   private animation: IAnimation<
@@ -18,7 +19,7 @@ export class Character extends Container implements IEntity {
 
   public async init() {
     this.animation = await createAnimation({
-      frameSize: { width: 100, height: 149.75 },
+      frameSize: { width: 100, height: 120 },
       assetPath: "assets/character-sprite.png",
       animationNames: [
         "walk-down",
@@ -42,10 +43,11 @@ export class Character extends Container implements IEntity {
       scale: "1.4",
     });
     this.addChild(this.animation);
+    // offset the animation to center it
+    // Since we change the scale of the character, we need to offset the animation,
+    // otherwise the character width won't be equal to cellSize
+    this.animation.x = (cellSize - this.width) / 2;
 
-    this.pivot.x = this.width / 2;
-    this.pivot.y = this.height / 2;
-    // initialize the character to be standing
     this.stopWalking();
   }
 

@@ -15,8 +15,6 @@ export class Map {
     this.cells = await parseMap(this.rawMap);
     this.cells.forEach((cell) => this.container.addChild(cell.asset));
 
-    this.container.pivot.x = this.container.width / 2;
-    this.container.pivot.y = this.container.height / 2;
     this.container.sortableChildren = true;
   }
 
@@ -50,9 +48,14 @@ export class Map {
     return !!cell.solid;
   }
 
-  public getCell(x: number, y: number): ICell | undefined {
-    const xCell = Math.round(x / cellSize);
-    const yCell = Math.round(y / cellSize);
+  public getCell(
+    x: number,
+    y: number,
+    xRoundingMethod: "round" | "floor" | "ceil" = "round",
+    yRoundingMethod: "round" | "floor" | "ceil" = "round"
+  ): ICell | undefined {
+    const xCell = Math[xRoundingMethod](x / cellSize);
+    const yCell = Math[yRoundingMethod](y / cellSize);
 
     return this.cells.find((c) => c.x === xCell && c.y === yCell);
   }

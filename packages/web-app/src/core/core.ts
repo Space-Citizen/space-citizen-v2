@@ -50,8 +50,8 @@ export class GameCore {
     // create and init the character
     this.character = new Character();
     await this.character.init();
-    this.character.x = characterStart.x * cellSize + cellSize / 2;
-    this.character.y = characterStart.y * cellSize - cellSize / 2;
+    this.character.x = characterStart.x * cellSize;
+    this.character.y = characterStart.y * cellSize;
 
     // add the character to the map
     this.map.addEntity(this.character);
@@ -60,14 +60,20 @@ export class GameCore {
     const enemy = new Enemy(this.map, app);
     await enemy.init();
     // offset slightly the enemy to the character start
-    enemy.x = (characterStart.x - 3) * cellSize + cellSize / 2;
-    enemy.y = characterStart.y * cellSize - cellSize / 2;
+    enemy.x = (characterStart.x - 3) * cellSize;
+    enemy.y = characterStart.y * cellSize;
 
     // add the character to the map
     this.map.addEntity(enemy);
-    this.map.container.x = app.view.width / 2;
-    this.map.container.y =
-      app.view.height / 2 + this.map.container.height / 2 - this.character.y;
+
+    const screenCenter = {
+      x: app.view.width / 2,
+      y: app.view.height / 2,
+    };
+
+    // center the map on the character
+    this.map.container.x = screenCenter.x - this.character.x;
+    this.map.container.y = screenCenter.y - this.character.y;
 
     // add the map to the stage.
     app.stage.addChild(this.map.container);

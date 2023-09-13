@@ -1,6 +1,6 @@
 import { Application } from "pixi.js";
 import { cellSize, interactionRadius } from "../constants";
-import { IEntity } from "../types";
+import { ICoordinates, IEntity } from "../types";
 import { Map } from "./map/map";
 import { uiAPI } from "../react-ui/UIApi";
 import { IAnimation } from "./sprites/createAnimation";
@@ -40,23 +40,96 @@ export class InteractionManager {
     }
 
     const tryToMove = (xDelta: number, yDelta: number) => {
-      const newX = this.character.x + xDelta * -1;
-      const newY = this.character.y + yDelta * -1;
-      // Extra margin to the right side to avoid getting stuck on the wall
-      const rightSideExtraMargin = 30;
-      if (
-        this.map.isWall(newX - rightSideExtraMargin, newY) ||
-        this.map.isWall(
-          newX - this.character.width / 2 - rightSideExtraMargin,
-          newY
-        )
-      ) {
+      // Calculate the new position for the player.
+      // We invert the delta because we are moving the map, not the player
+      const newPlayerX = this.character.x + xDelta * -1;
+      const newPlayerY = this.character.y + yDelta * -1;
+
+      // Check if the player is between two cells (on the X axis)
+      const isBetweenVerticalCells =
+        Math.floor(this.character.x / cellSize) !==
+        Math.floor((this.character.x + this.character.width) / cellSize);
+
+      const isBetweenHorizontalCells =
+        Math.floor(this.character.y / cellSize) !==
+        Math.floor((this.character.y + this.character.height) / cellSize);
+
+      const cellsToCheck: ICoordinates[] = [];
+      // if we are going down, we need to check the cells under the player (yDelta is negative)
+      if (yDelta < 0) {
+        cellsToCheck.push({
+          x: Math.floor(newPlayerX / cellSize),
+          y: Math.floor((newPlayerY + this.character.height) / cellSize),
+        });
+        if (isBetweenVerticalCells) {
+          cellsToCheck.push({
+            x: Math.floor((newPlayerX + this.character.width) / cellSize),
+            y: Math.floor((newPlayerY + this.character.height) / cellSize),
+          });
+        }
+      }
+      // if we are going up, we need to check the cells above the player (yDelta is positive)
+      else if (yDelta > 0) {
+        cellsToCheck.push({
+          x: Math.floor(newPlayerX / cellSize),
+          y: Math.floor(newPlayerY / cellSize),
+        });
+        if (isBetweenVerticalCells) {
+          cellsToCheck.push({
+            x: Math.floor((newPlayerX + this.character.width) / cellSize),
+            y: Math.floor(newPlayerY / cellSize),
+          });
+        }
+      }
+      // if we are going left, we need to check the cells on the left of the player (xDelta is positive)
+      else if (xDelta > 0) {
+        cellsToCheck.push({
+          x: Math.floor(newPlayerX / cellSize),
+          y: Math.floor(newPlayerY / cellSize),
+        });
+        if (isBetweenHorizontalCells) {
+          cellsToCheck.push({
+            x: Math.floor(newPlayerX / cellSize),
+            y: Math.floor((newPlayerY + this.character.height) / cellSize),
+          });
+        }
+      }
+      // if we are going right, we need to check the cells on the right of the player (xDelta is negative)
+      else if (xDelta < 0) {
+        cellsToCheck.push({
+          x: Math.floor((newPlayerX + this.character.width) / cellSize),
+          y: Math.floor(newPlayerY / cellSize),
+        });
+        if (isBetweenHorizontalCells) {
+          cellsToCheck.push({
+            x: Math.floor((newPlayerX + this.character.width) / cellSize),
+            y: Math.floor((newPlayerY + this.character.height) / cellSize),
+          });
+        }
+      }
+
+      const hasSolidCell = cellsToCheck.some((coords) => {
+        const cell = this.map.cells.find(
+          (cell) => cell.x === coords.x && cell.y === coords.y && cell.solid
+        );
+        // special case if we are going left and the cell is a vertical wall
+        if (
+          cell &&
+          cell.kind === "wall" &&
+          (cell as ICell<"wall">).properties.wallType.includes("vertical")
+        ) {
+          return newPlayerX < cell.x * cellSize + 28;
+        }
+        return cell?.solid;
+      });
+
+      if (hasSolidCell) {
         this.character.stopWalking();
       } else {
-        this.character.x = newX;
-        this.character.y = newY;
+        this.character.x = newPlayerX;
+        this.character.y = newPlayerY;
         // update the zIndex as we move down the map
-        this.character.zIndex = Math.ceil(newY / cellSize);
+        this.character.zIndex = Math.ceil(newPlayerY / cellSize);
         this.map.container.y += yDelta;
         this.map.container.x += xDelta;
       }

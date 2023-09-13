@@ -41,6 +41,7 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
           `assets/walls/${(cell as ICell<"wall">).properties.wallType}.png`
         );
         cell.asset.zIndex = cell.y;
+        (cell.asset as Sprite).anchor.y = cell.asset.height / 2;
         break;
       case "floor":
         cell.properties = { floorType: findFloorType(cell, cells) };
@@ -64,14 +65,11 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
         });
         cell.properties = { open: false };
         cell.asset.zIndex = cell.y;
+        cell.asset.pivot.y = cell.asset.height / 2;
         break;
     }
     cell.asset.x = cell.x * cellSize;
     cell.asset.y = cell.y * cellSize;
-    "anchor" in cell.asset
-      ? cell.asset.anchor.set(0, 1)
-      : cell.asset.pivot.set(0, cell.asset.height);
-    cell.asset.width = cellSize;
   }
 
   return cells;

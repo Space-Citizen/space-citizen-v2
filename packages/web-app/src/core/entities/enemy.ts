@@ -26,9 +26,46 @@ export class Enemy extends Container implements IEntity {
   ) {
     super();
     this.speed = 1;
-
-    this.map; // until used
     this.app.ticker.add(this.onTick.bind(this));
+  }
+
+  public async init(): Promise<void> {
+    this.animation = await createAnimation({
+      frameSize: { width: 100, height: 100 },
+      assetPath: "assets/enemy-sprite.png",
+      animationNames: [
+        "walk-down",
+        "walk-up",
+        "walk-left",
+        "walk-right",
+        "idle",
+      ],
+      idleAnimationName: "idle",
+      animationSettings: {
+        "*": {
+          animationSpeed: 0.1666,
+          loop: true,
+          autoPlay: true,
+        },
+        idle: {
+          autoPlay: true,
+          animationSpeed: 0.0666,
+        },
+      },
+      scale: "1",
+    });
+    this.addChild(this.animation);
+    // offset the animation to center it
+    // Since we change the scale of the character, we need to offset the animation,
+    // otherwise the character width won't be equal to cellSize
+    this.animation.x = (cellSize - this.width) / 2;
+
+    // initialize the character to be standing
+    this.stopWalking();
+  }
+
+  public destroy(): void {
+    this.app.ticker.remove(this.onTick.bind(this));
   }
 
   public onTick(): void {
@@ -58,8 +95,8 @@ export class Enemy extends Container implements IEntity {
 
   private walkOnPath() {
     const currentPath = this.path[0];
-    const targetX = currentPath.x * cellSize + cellSize / 2;
-    const targetY = currentPath.y * cellSize + cellSize / 2;
+    const targetX = currentPath.x * cellSize;
+    const targetY = currentPath.y * cellSize;
     const xDelta = targetX - this.x;
     const yDelta = targetY - this.y;
     const distanceToTarget = distance(this.x, this.y, targetX, targetY);
@@ -79,44 +116,6 @@ export class Enemy extends Container implements IEntity {
       this.x += (xDelta / distanceToTarget) * this.speed;
       this.y += (yDelta / distanceToTarget) * this.speed;
     }
-  }
-
-  public destroy(): void {
-    this.app.ticker.remove(this.onTick.bind(this));
-  }
-
-  public async init(): Promise<void> {
-    this.animation = await createAnimation({
-      frameSize: { width: 100, height: 100 },
-      assetPath: "assets/enemy-sprite.png",
-      animationNames: [
-        "walk-down",
-        "walk-up",
-        "walk-left",
-        "walk-right",
-        "idle",
-      ],
-      idleAnimationName: "idle",
-      animationSettings: {
-        "*": {
-          animationSpeed: 0.1666,
-          loop: true,
-          autoPlay: true,
-        },
-        idle: {
-          autoPlay: true,
-          animationSpeed: 0.0666,
-        },
-      },
-      scale: "1",
-    });
-    this.addChild(this.animation);
-
-    this.pivot.x = this.width / 2;
-    this.pivot.y = this.height / 2;
-
-    // initialize the character to be standing
-    this.stopWalking();
   }
 
   public walk(direction: Direction): void {
