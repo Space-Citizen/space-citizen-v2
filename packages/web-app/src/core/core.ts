@@ -1,7 +1,6 @@
 import { Application } from "pixi.js";
 import { CRTFilter } from "@pixi/filter-crt";
-import { IEntity } from "../types";
-import { createCharacter } from "./character/character";
+import { Character } from "./entities/character";
 import { Map } from "./map/map";
 import {
   CRTFilterVignetting,
@@ -11,6 +10,7 @@ import {
 } from "../constants";
 import { InteractionManager } from "./interactionManager";
 import { uiAPI } from "../react-ui/UIApi";
+import { Enemy } from "./entities/enemy";
 
 export const app = new Application({
   width: window.innerWidth,
@@ -20,7 +20,7 @@ export const app = new Application({
 });
 
 export class GameCore {
-  private character: IEntity;
+  private character: Character;
   private map: Map;
   private interactionManager: InteractionManager;
 
@@ -41,24 +41,34 @@ export class GameCore {
           { dismissTimeout: 2000, animation: "text" }
         );
       }
-    }, 1);
+    }, 80);
   }
 
   public async init() {
     // init the map
     await this.map.init();
-    this.map.container.x = app.view.width / 2;
     // create and init the character
-    this.character = await createCharacter();
+    this.character = new Character();
+    await this.character.init();
     this.character.x = characterStart.x * cellSize + cellSize / 2;
-    this.character.y = characterStart.y * cellSize + cellSize / 2;
-    this.character.pivot.x = this.character.width / 2;
-    this.character.pivot.y = this.character.height / 2;
+    this.character.y = characterStart.y * cellSize - cellSize / 2;
 
+    // add the character to the map
+    this.map.addEntity(this.character);
+
+    // create and init an enemy
+    const enemy = new Enemy(this.map, app);
+    await enemy.init();
+    // offset slightly the enemy to the character start
+    enemy.x = (characterStart.x - 3) * cellSize + cellSize / 2;
+    enemy.y = characterStart.y * cellSize - cellSize / 2;
+
+    // add the character to the map
+    this.map.addEntity(enemy);
+    this.map.container.x = app.view.width / 2;
     this.map.container.y =
       app.view.height / 2 + this.map.container.height / 2 - this.character.y;
-    // add the character to the map
-    this.map.container.addChild(this.character);
+
     // add the map to the stage.
     app.stage.addChild(this.map.container);
 

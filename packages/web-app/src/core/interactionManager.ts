@@ -21,14 +21,14 @@ export class InteractionManager {
   ) {
     window.addEventListener("keydown", this.onKeyDown.bind(this));
     window.addEventListener("keyup", this.onKeyUp.bind(this));
-    this.app.ticker.add(this.renderLoop.bind(this));
+    this.app.ticker.add(this.onTick.bind(this));
   }
 
   public destroy() {
-    this.app.ticker.remove(this.renderLoop.bind(this));
+    this.app.ticker.remove(this.onTick.bind(this));
   }
 
-  public renderLoop(delta: number): void {
+  public onTick(delta: number): void {
     this.moveCharacter(delta);
 
     this.checkForInteractions();

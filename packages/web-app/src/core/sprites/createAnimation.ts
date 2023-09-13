@@ -85,7 +85,6 @@ export async function createAnimation<const AN extends readonly string[]>({
   await spriteSheet.parse();
 
   const animation = new Container() as IAnimation<AN>;
-
   const switchAnimation: IAnimation<AN>["switchAnimation"] = (
     animationName
   ) => {

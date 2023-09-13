@@ -2,10 +2,12 @@ import { Container } from "pixi.js";
 import { cellSize } from "../../constants";
 import { ICell } from "../types";
 import { parseMap } from "./parsing";
+import { IEntity } from "../../types";
 
 export class Map {
   public container = new Container();
-  private cells: ICell[];
+  public cells: ICell[];
+  private entities: IEntity[] = [];
 
   constructor(public readonly rawMap: number[][]) {}
 
@@ -18,8 +20,20 @@ export class Map {
     this.container.sortableChildren = true;
   }
 
+  public addEntity(entity: IEntity) {
+    this.entities.push(entity);
+    this.container.addChild(entity);
+  }
+
+  public getEntities(): IEntity[] {
+    return this.entities;
+  }
+
   public isWall(x: number, y: number): boolean {
     const cell = this.getCell(x, y) as ICell<"wall">;
+    if (!cell) {
+      return false;
+    }
 
     // vertical walls to the left of the player needs to be checked differently.
     // Since they have a width lower that the cell size, we need to check if the player is
@@ -29,7 +43,7 @@ export class Map {
       x > cell.x * cellSize &&
       ((cell.properties.wallType.includes("vertical") &&
         cell.properties.wallType !== "vertical-T") ||
-        cell.properties.wallType.includes("corner"))
+        cell.properties.wallType.includes("right-corner"))
     ) {
       return Math.abs(cell.x * cellSize - x) < 0;
     }
@@ -38,7 +52,8 @@ export class Map {
 
   public getCell(x: number, y: number): ICell | undefined {
     const xCell = Math.round(x / cellSize);
-    const yCell = Math.ceil(y / cellSize);
+    const yCell = Math.round(y / cellSize);
+
     return this.cells.find((c) => c.x === xCell && c.y === yCell);
   }
 
@@ -47,8 +62,8 @@ export class Map {
       (c) =>
         c.x >= Math.round((x - radius) / cellSize) &&
         c.x <= Math.round((x + radius) / cellSize) &&
-        c.y >= Math.ceil((y - radius) / cellSize) &&
-        c.y <= Math.ceil((y + radius) / cellSize)
+        c.y >= Math.round((y - radius) / cellSize) &&
+        c.y <= Math.round((y + radius) / cellSize)
     );
     return cells;
   }
