@@ -6,6 +6,10 @@ import { uiAPI } from "../react-ui/UIApi";
 import { IAnimation } from "./sprites/createAnimation";
 import { ICell } from "./types";
 
+/**
+ * Class taking care of user interactions,
+ * such as movements and interactions with the environment.
+ */
 export class InteractionManager {
   private pressedKeys = new Set();
   private dialogDismiss: () => void;
@@ -41,11 +45,11 @@ export class InteractionManager {
       // Extra margin to the right side to avoid getting stuck on the wall
       const rightSideExtraMargin = 30;
       if (
+        this.map.isWall(newX - rightSideExtraMargin, newY) ||
         this.map.isWall(
-          newX + this.character.width / 2 - rightSideExtraMargin,
+          newX - this.character.width / 2 - rightSideExtraMargin,
           newY
-        ) ||
-        this.map.isWall(newX - this.character.width / 2, newY)
+        )
       ) {
         this.character.stopWalking();
       } else {

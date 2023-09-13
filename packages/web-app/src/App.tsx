@@ -1,6 +1,6 @@
 import * as React from "react";
 import "./App.module.css";
-import { Controller, app } from "./core/controller";
+import { GameCore, app } from "./core/core";
 import { UIController } from "./react-ui/UIController";
 
 export function App(): React.ReactElement {
@@ -14,7 +14,7 @@ export function App(): React.ReactElement {
     wrapper.appendChild(app.view as HTMLCanvasElement);
     document.body.appendChild(wrapper);
 
-    const controller = new Controller();
+    const controller = new GameCore();
     controller.init();
 
     return controller.destroy;
