@@ -65,6 +65,7 @@ export class Enemy extends Container implements IEntity {
   }
 
   public destroy(): void {
+    super.destroy();
     this.app.ticker.remove(this.onTick.bind(this));
   }
 

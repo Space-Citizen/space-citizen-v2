@@ -1,8 +1,8 @@
 .dialog {
   position: absolute;
-  top: calc(50% - 200px);
+  top: 45%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-25%);
   z-index: 5;
   background-color: rgba(0, 0, 0, 0.5);
   align-items: center;

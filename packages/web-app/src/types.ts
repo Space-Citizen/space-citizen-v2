@@ -2,7 +2,6 @@ import type { Container } from "pixi.js";
 
 export interface IEntity extends Container {
   init(): Promise<void>;
-  destroy(): void;
   walk(direction: Direction): void;
   stopWalking(): void;
   walkDirection: Direction;

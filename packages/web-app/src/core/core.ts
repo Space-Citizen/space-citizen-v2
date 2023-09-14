@@ -48,7 +48,7 @@ export class GameCore {
     // init the map
     await this.map.init();
     // create and init the character
-    this.character = new Character();
+    this.character = new Character(this.map, app);
     await this.character.init();
     this.character.x = characterStart.x * cellSize;
     this.character.y = characterStart.y * cellSize;
@@ -88,5 +88,6 @@ export class GameCore {
 
   public destroy() {
     this.interactionManager.destroy();
+    this.map.destroy();
   }
 }

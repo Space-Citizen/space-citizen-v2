@@ -18,6 +18,11 @@ export class Map {
     this.container.sortableChildren = true;
   }
 
+  public destroy() {
+    this.container.destroy();
+    this.entities.forEach((entity) => entity.destroy());
+  }
+
   public addEntity(entity: IEntity) {
     this.entities.push(entity);
     this.container.addChild(entity);
@@ -27,35 +32,9 @@ export class Map {
     return this.entities;
   }
 
-  public isWall(x: number, y: number): boolean {
-    const cell = this.getCell(x, y) as ICell<"wall">;
-    if (!cell) {
-      return false;
-    }
-
-    // vertical walls to the left of the player needs to be checked differently.
-    // Since they have a width lower that the cell size, we need to check if the player is
-    // close enough to the wall to be considered colliding with it.
-    if (
-      cell.kind === "wall" &&
-      x > cell.x * cellSize &&
-      ((cell.properties.wallType.includes("vertical") &&
-        cell.properties.wallType !== "vertical-T") ||
-        cell.properties.wallType.includes("right-corner"))
-    ) {
-      return Math.abs(cell.x * cellSize - x) < 0;
-    }
-    return !!cell.solid;
-  }
-
-  public getCell(
-    x: number,
-    y: number,
-    xRoundingMethod: "round" | "floor" | "ceil" = "round",
-    yRoundingMethod: "round" | "floor" | "ceil" = "round"
-  ): ICell | undefined {
-    const xCell = Math[xRoundingMethod](x / cellSize);
-    const yCell = Math[yRoundingMethod](y / cellSize);
+  public getCell(x: number, y: number): ICell | undefined {
+    const xCell = Math.round(x / cellSize);
+    const yCell = Math.round(y / cellSize);
 
     return this.cells.find((c) => c.x === xCell && c.y === yCell);
   }
