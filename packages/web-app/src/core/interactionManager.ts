@@ -1,5 +1,5 @@
 import { Application } from "pixi.js";
-import { interactionRadius } from "../constants";
+import { cellSize, interactionRadius } from "../constants";
 import { IEntity } from "../types";
 import { Map } from "./map/map";
 import { uiAPI } from "../react-ui/UIApi";
@@ -61,7 +61,15 @@ export class InteractionManager {
 
     const door = cells.find((cell) => cell.kind === "door") as ICell<"door">;
     // open or close the door
-    if (door) {
+    if (
+      door &&
+      // can't close the door if the player is in the way
+      !(
+        door.x === Math.round(x / cellSize) &&
+        // add 20 of play to using the door from quite close
+        door.y === Math.round((y + 20) / cellSize)
+      )
+    ) {
       door.properties.toggle();
     }
   }

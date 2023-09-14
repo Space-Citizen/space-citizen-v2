@@ -60,7 +60,7 @@ export class GameCore {
     const enemy = new Enemy(
       this.map,
       app,
-      /* speed */ 3,
+      /* speed */ 2,
       /* detectionRange */ 300
     );
     await enemy.init();

@@ -101,7 +101,7 @@ export class Character extends Container implements IEntity {
       this.x = newPlayerCoords.x;
       this.y = newPlayerCoords.y;
       // update the zIndex as we move down the map
-      this.zIndex = Math.ceil(newPlayerCoords.y / cellSize);
+      this.zIndex = Math.round(newPlayerCoords.y / cellSize);
       this.map.container.y += yDelta;
       this.map.container.x += xDelta;
     }
