@@ -2,15 +2,9 @@ import { Application } from "pixi.js";
 import { CRTFilter } from "@pixi/filter-crt";
 import { Character } from "./entities/character";
 import { Map } from "./map/map";
-import {
-  CRTFilterVignetting,
-  cellSize,
-  characterStart,
-  defaultMapRaw,
-} from "../constants";
+import { CRTFilterVignetting, cellSize } from "../constants";
 import { InteractionManager } from "./interactionManager";
 import { uiAPI } from "../react-ui/UIApi";
-import { Enemy } from "./entities/enemy";
 
 export const app = new Application({
   width: window.innerWidth,
@@ -26,7 +20,7 @@ export class GameCore {
 
   constructor() {
     // create the map
-    this.map = new Map(defaultMapRaw);
+    this.map = new Map();
     app.stage.filterArea = app.screen;
     const crtFilter = new CRTFilter({ vignetting: 1 });
     app.stage.filters = [crtFilter];
@@ -41,7 +35,7 @@ export class GameCore {
           { dismissTimeout: 2000, animation: "text" }
         );
       }
-    }, 80);
+    }, 50);
   }
 
   public async init() {
@@ -50,26 +44,26 @@ export class GameCore {
     // create and init the character
     this.character = new Character(this.map, app);
     await this.character.init();
-    this.character.x = characterStart.x * cellSize;
-    this.character.y = characterStart.y * cellSize;
+    this.character.x = this.map.startLocation.x * cellSize;
+    this.character.y = this.map.startLocation.y * cellSize;
 
     // add the character to the map
     this.map.addEntity(this.character);
 
-    // create and init an enemy
-    const enemy = new Enemy(
-      this.map,
-      app,
-      /* speed */ 2,
-      /* detectionRange */ 300
-    );
-    await enemy.init();
-    // offset slightly the enemy to the character start
-    enemy.x = (characterStart.x - 3) * cellSize;
-    enemy.y = characterStart.y * cellSize;
+    // // create and init an enemy
+    // const enemy = new Enemy(
+    //   this.map,
+    //   app,
+    //   /* speed */ 2,
+    //   /* detectionRange */ 300
+    // );
+    // await enemy.init();
+    // // offset slightly the enemy to the character start
+    // enemy.x = this.map.startLocation.x * cellSize;
+    // enemy.y = this.map.startLocation.y * cellSize;
 
-    // add the character to the map
-    this.map.addEntity(enemy);
+    // // add the character to the map
+    // this.map.addEntity(enemy);
 
     const screenCenter = {
       x: app.view.width / 2,

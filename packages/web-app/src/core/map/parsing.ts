@@ -19,8 +19,11 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
         solid: kind === "wall" || kind === "door",
       } as ICell); // casting to avoid setting asset now
 
-      // add a floor cell under the wall (except for the last column)
-      if ((kind === "wall" || kind === "door") && rawMap[y].length - 1 !== x) {
+      // add a floor cell under the wall (except if there is no cells on the right side)
+      if (
+        (kind === "wall" || kind === "door") &&
+        rawMap[y][x + 1] !== undefined
+      ) {
         map.push({
           kind: "floor",
           x,

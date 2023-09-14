@@ -2,14 +2,22 @@ import { Container } from "pixi.js";
 import { cellSize } from "../../constants";
 import { ICell } from "../types";
 import { parseMap } from "./parsing";
-import { IEntity } from "../../types";
+import { ICoordinates, IEntity } from "../../types";
+import { generateMap } from "./generation";
 
 export class Map {
   public container = new Container();
   public cells: ICell[];
   private entities: IEntity[] = [];
+  public rawMap: number[][];
+  public startLocation: ICoordinates;
 
-  constructor(public readonly rawMap: number[][]) {}
+  constructor() {
+    const { map, startCoords } = generateMap();
+    this.rawMap = map;
+    console.log(this.rawMap);
+    this.startLocation = startCoords;
+  }
 
   public async init() {
     this.cells = await parseMap(this.rawMap);
