@@ -5,6 +5,7 @@ import { Map } from "./map/map";
 import { CRTFilterVignetting, cellSize } from "../constants";
 import { InteractionManager } from "./interactionManager";
 import { uiAPI } from "../react-ui/UIApi";
+import { Enemy } from "./entities/enemy";
 
 export const app = new Application({
   width: window.innerWidth,
@@ -23,7 +24,7 @@ export class GameCore {
     this.map = new Map();
     app.stage.filterArea = app.screen;
     const crtFilter = new CRTFilter({ vignetting: 1 });
-    app.stage.filters = [crtFilter];
+    // app.stage.filters = [crtFilter];
 
     // create an animation to make the vignetting effect
     const interval = setInterval(() => {
@@ -50,20 +51,20 @@ export class GameCore {
     // add the character to the map
     this.map.addEntity(this.character);
 
-    // // create and init an enemy
-    // const enemy = new Enemy(
-    //   this.map,
-    //   app,
-    //   /* speed */ 2,
-    //   /* detectionRange */ 300
-    // );
-    // await enemy.init();
-    // // offset slightly the enemy to the character start
-    // enemy.x = this.map.startLocation.x * cellSize;
-    // enemy.y = this.map.startLocation.y * cellSize;
+    // create and init an enemy
+    const enemy = new Enemy(
+      this.map,
+      app,
+      /* speed */ 2,
+      /* detectionRange */ 300
+    );
+    await enemy.init();
+    // offset slightly the enemy to the character start
+    enemy.x = this.map.startLocation.x * cellSize;
+    enemy.y = this.map.startLocation.y * cellSize;
 
-    // // add the character to the map
-    // this.map.addEntity(enemy);
+    // add the character to the map
+    this.map.addEntity(enemy);
 
     const screenCenter = {
       x: app.view.width / 2,

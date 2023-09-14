@@ -15,6 +15,9 @@ interface IRoom {
   corridor?: { from: ICoordinates; to: ICoordinates; direction: Direction };
 }
 
+const minimumSharedWidth = 3;
+const minimumSharedHeight = 3;
+
 function random(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -65,27 +68,44 @@ function getOuterMostRoom(rooms: IRoom[], direction: Direction): IRoom {
   }
 }
 
+// Generate a random shared X coordinate between two rooms
+function getSharedX(room1: IRoom, room2: IRoom) {
+  return random(
+    Math.max(room1.x + 1, room2.x + 1), // adding +1 since we need a wall on the left side
+    Math.min(room1.x + room1.width - 2, room2.x + room2.width - 2) // removing -2 since we need a wall on the right side and we need to also remove 1 from the width
+  );
+}
+
+// Generate a random shared X coordinate between two rooms
+function getSharedY(room1: IRoom, room2: IRoom) {
+  return random(
+    Math.max(room1.y + 1, room2.y + 1),
+    Math.min(room1.y + room1.height - 2, room2.y + room2.height - 2)
+  );
+}
 function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
   const distanceToOuterMostRoom = random(1, 2);
-  // find a shared X coordinate between the two rooms
-  const sharedX = random(
-    (room.x > outerMostRoom.x ? room.x + 1 : outerMostRoom.x) + 1,
-    (room.x + room.width < outerMostRoom.x + outerMostRoom.width
-      ? room.x + room.width
-      : outerMostRoom.x + outerMostRoom.width) - 1
-  );
-  const sharedY = random(
-    (room.y > outerMostRoom.y ? room.y : outerMostRoom.y) + 1,
-    (room.y + room.height < outerMostRoom.y + outerMostRoom.height
-      ? room.y + room.height
-      : outerMostRoom.y + outerMostRoom.height) - 2
-  );
+
+  const shortestWidth = Math.min(room.width, outerMostRoom.width);
+  const shortestHeight = Math.min(room.height, outerMostRoom.height);
+  let sharedX: number, sharedY: number;
+
+  // random to decide where to offset the room based on the previous one
+  const roomOffsetDirection = random(0, 1) === 1 ? 1 : -1;
+  console.log("start", room, outerMostRoom);
+
   switch (direction) {
     // north
     case Direction.North:
+      // move the room to the top of the outerMostRoom
       room.y = outerMostRoom.y - room.height - distanceToOuterMostRoom;
-      // create a corridor from the bottom of this room to the top of the outerMostRoom
+      // Offset the room to the left or right of the outerMostRoom
+      room.x =
+        outerMostRoom.x +
+        random(0, shortestWidth - minimumSharedWidth) * roomOffsetDirection;
 
+      sharedX = getSharedX(room, outerMostRoom);
+      // create a corridor from the bottom of this room to the top of the outerMostRoom
       room.corridor = {
         from: {
           x: sharedX,
@@ -101,6 +121,13 @@ function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
     // east
     case Direction.East:
       room.x = outerMostRoom.x + outerMostRoom.width + distanceToOuterMostRoom;
+
+      room.y =
+        outerMostRoom.y +
+        random(0, shortestHeight - minimumSharedHeight) * roomOffsetDirection;
+
+      sharedY = getSharedY(room, outerMostRoom);
+
       // create a corridor from the left of this room to the right of the outerMostRoom
       room.corridor = {
         from: {
@@ -117,6 +144,11 @@ function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
     // south
     case Direction.South:
       room.y = outerMostRoom.y + outerMostRoom.height + distanceToOuterMostRoom;
+      room.x =
+        outerMostRoom.x +
+        random(0, shortestWidth - minimumSharedWidth) * roomOffsetDirection;
+
+      sharedX = getSharedX(room, outerMostRoom);
       // create a corridor from the top of this room to the bottom of the outerMostRoom
       room.corridor = {
         from: {
@@ -133,6 +165,11 @@ function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
     // west
     case Direction.West:
       room.x = outerMostRoom.x - room.width - distanceToOuterMostRoom;
+      room.y =
+        outerMostRoom.y +
+        random(0, shortestHeight - minimumSharedHeight) * roomOffsetDirection;
+
+      sharedY = getSharedY(room, outerMostRoom);
       // create a corridor from the right of this room to the left of the outerMostRoom
       room.corridor = {
         from: {
@@ -147,6 +184,7 @@ function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
       };
       break;
   }
+  console.log("end", room, outerMostRoom);
 }
 
 export function generateMap(): {
@@ -223,6 +261,12 @@ export function generateMap(): {
           direction === Direction.East ||
           direction === Direction.West
         ) {
+          if (map[mapY - 1] === undefined) {
+            map[mapY - 1] = [];
+          }
+          if (map[mapY + 1] === undefined) {
+            map[mapY + 1] = [];
+          }
           map[mapY - 1][mapX] = 1;
           map[mapY + 1][mapX] = 1;
         }
