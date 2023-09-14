@@ -1,0 +1,39 @@
+/*!
+ * @pixi/filter-crt - v5.1.1
+ * Compiled Wed, 11 Jan 2023 23:10:33 UTC
+ *
+ * @pixi/filter-crt is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*! https://mths.be/punycode v1.3.2 by @mathias */
+
+/**
+ * @license React
+ * react-dom.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+ * @license React
+ * react.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+ * @license React
+ * scheduler.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
