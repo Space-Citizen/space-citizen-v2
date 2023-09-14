@@ -94,7 +94,6 @@ export function findPath(
     ) {
       y++;
     } else {
-      path.shift();
       break;
     }
     // eslint-disable-next-line no-constant-condition
