@@ -39,7 +39,7 @@ module.exports = (_, { mode }) => {
     },
     output: {
       path: path.resolve(__dirname, "dist"),
-      publicPath: mode === "production" ? "/space-citizen-2" : "/",
+      publicPath: mode === "production" ? "/space-citizen-v2" : "/",
       filename: "[name].bundle.js",
     },
     optimization: {
