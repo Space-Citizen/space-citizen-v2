@@ -22,6 +22,7 @@ module.exports = {
   parserOptions: {
     sourceType: "module",
   },
+  ignorePatterns: ["*.module.css"],
   parser: "@typescript-eslint/parser",
   plugins: ["@typescript-eslint"],
   extends: [

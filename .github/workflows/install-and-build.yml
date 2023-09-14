@@ -2,7 +2,7 @@ name: CI
 on: [push]
 jobs:
   build:
-    name: Install and build
+    name: Install, build and publish
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,3 +24,9 @@ jobs:
       - uses: borales/actions-yarn@v4
         with:
           cmd: test # will run `yarn test` command
+      - uses: s0/git-publish-subdir-action@develop # publish to the built-client branch
+        env:
+          REPO: self
+          BRANCH: built-client
+          FOLDER: packages/web-app/dist
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
