@@ -269,6 +269,12 @@ export function generateMap(): {
           map[mapY + 1][mapX] = 1;
         }
       }
+      // if we just added a vertical corridor, add a door as well
+      if (direction === Direction.North || direction === Direction.South) {
+        const doorX = Math.abs(startX - to.x);
+        const doorY = Math.abs(startY - to.y);
+        map[doorY][doorX] = 2;
+      }
     });
 
   return {

@@ -5,7 +5,7 @@ import { IAnimation, createAnimation } from "../sprites/createAnimation";
 
 type SurroundingWallsMap = Record<
   "top" | "bottom" | "left" | "right" | "self",
-  undefined | ICell<"wall">
+  undefined | ICell<"wall"> | ICell<"door">
 >;
 
 export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
@@ -107,7 +107,7 @@ function getSurroundingWalls(
     self: undefined,
   };
   cells.forEach((cell) => {
-    if (cell.kind !== "wall") {
+    if (cell.kind !== "wall" && cell.kind !== "door") {
       return;
     }
     if (cell.x === x && cell.y === y) {
@@ -132,8 +132,14 @@ function getSurroundingWalls(
 function findFloorType({ x, y }: ICell, cells: ICell[]): FloorType {
   const surroundingWalls = getSurroundingWalls(x, y, cells);
 
+  const topWallType = (surroundingWalls.top as ICell<"wall">)?.properties
+    ?.wallType;
+
+  if (surroundingWalls.self?.kind === "door") {
+    return "floor";
+  }
+
   if (surroundingWalls.self) {
-    const topWallType = surroundingWalls.top?.properties.wallType;
     if (
       (topWallType?.includes("horizontal") || topWallType === "vertical-T") &&
       topWallType !== "horizontal-right-corner-bottom"
@@ -145,12 +151,11 @@ function findFloorType({ x, y }: ICell, cells: ICell[]): FloorType {
   }
   if (
     surroundingWalls.top &&
-    surroundingWalls.top.properties.wallType.includes("horizontal")
+    (topWallType?.includes("horizontal") ||
+      surroundingWalls.top.kind === "door")
   ) {
     // special case for right-corner-top assets, we want a corner shadow
-    if (
-      surroundingWalls.top.properties.wallType === "horizontal-right-corner-top"
-    ) {
+    if (topWallType === "horizontal-right-corner-top") {
       return "floor-shadow-top-left";
     }
     return "floor-shadow-top";
