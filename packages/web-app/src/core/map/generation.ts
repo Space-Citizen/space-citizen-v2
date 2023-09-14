@@ -92,7 +92,6 @@ function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
 
   // random to decide where to offset the room based on the previous one
   const roomOffsetDirection = random(0, 1) === 1 ? 1 : -1;
-  console.log("start", room, outerMostRoom);
 
   switch (direction) {
     // north
@@ -184,7 +183,6 @@ function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
       };
       break;
   }
-  console.log("end", room, outerMostRoom);
 }
 
 export function generateMap(): {

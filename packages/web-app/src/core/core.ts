@@ -24,7 +24,7 @@ export class GameCore {
     this.map = new Map();
     app.stage.filterArea = app.screen;
     const crtFilter = new CRTFilter({ vignetting: 1 });
-    // app.stage.filters = [crtFilter];
+    app.stage.filters = [crtFilter];
 
     // create an animation to make the vignetting effect
     const interval = setInterval(() => {

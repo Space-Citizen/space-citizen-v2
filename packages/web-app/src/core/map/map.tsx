@@ -15,7 +15,6 @@ export class Map {
   constructor() {
     const { map, startCoords } = generateMap();
     this.rawMap = map;
-    console.log(this.rawMap);
     this.startLocation = startCoords;
   }
 
