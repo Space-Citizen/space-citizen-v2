@@ -134,7 +134,10 @@ function findFloorType({ x, y }: ICell, cells: ICell[]): FloorType {
 
   if (surroundingWalls.self) {
     const topWallType = surroundingWalls.top?.properties.wallType;
-    if (topWallType?.includes("horizontal") || topWallType === "vertical-T") {
+    if (
+      (topWallType?.includes("horizontal") || topWallType === "vertical-T") &&
+      topWallType !== "horizontal-right-corner-bottom"
+    ) {
       return "floor-shadow-corner";
     } else {
       return "floor-shadow-left";
