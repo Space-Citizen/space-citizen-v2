@@ -4,6 +4,7 @@
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "homepage": "https://space-citizen.github.io/space-citizen-v2/",
   "scripts": {
     "start": "webpack serve --mode development",
     "build": "yarn clean && yarn bundle",
