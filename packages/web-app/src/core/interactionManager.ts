@@ -3,7 +3,6 @@ import { interactionRadius } from "../constants";
 import { IEntity } from "../types";
 import { Map } from "./map/map";
 import { uiAPI } from "../react-ui/UIApi";
-import { IAnimation } from "./sprites/createAnimation";
 import { ICell } from "./types";
 
 /**
@@ -63,17 +62,7 @@ export class InteractionManager {
     const door = cells.find((cell) => cell.kind === "door") as ICell<"door">;
     // open or close the door
     if (door) {
-      if (!door.properties.open) {
-        door.properties.open = true;
-        door.solid = false;
-        (door.asset as IAnimation).switchAnimation("open");
-        (door.asset as IAnimation).play();
-      } else if (door.properties.open) {
-        door.properties.open = false;
-        door.solid = true;
-        (door.asset as IAnimation).switchAnimation("close");
-        (door.asset as IAnimation).play();
-      }
+      door.properties.toggle();
     }
   }
 

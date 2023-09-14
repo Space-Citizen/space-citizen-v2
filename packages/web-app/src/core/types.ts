@@ -34,6 +34,7 @@ type CellProperties<K extends CellKind> = K extends "floor"
     }
   : K extends "door"
   ? {
+      toggle: () => void;
       open: boolean;
     }
   : never;

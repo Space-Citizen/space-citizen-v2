@@ -5,7 +5,8 @@ import { IEntity, ICoordinates } from "../types";
 export function findPath(
   startCell: ICell,
   target: IEntity,
-  map: Map
+  map: Map,
+  maxLength: number
 ): ICoordinates[] {
   const endCell = map.getCell(target.x - 1, target.y - 1);
   function explore(
@@ -13,7 +14,7 @@ export function findPath(
     exploredMap: number[][]
   ): boolean {
     const cell = toExplore.pop();
-    if (!cell) {
+    if (!cell || exploredMap[cell.y][cell.x] > maxLength) {
       return false;
     }
     const { x, y } = cell;
@@ -22,24 +23,28 @@ export function findPath(
     if (endCell.x === x && endCell.y === y) {
       return true;
     }
+    const newCellValue = previousCellValue + 1;
+    if (newCellValue > maxLength) {
+      return explore(toExplore, exploredMap);
+    }
     // explore top cell
     if (y - 1 >= 0 && exploredMap[y - 1][x] === 0) {
-      exploredMap[y - 1][x] = previousCellValue + 1;
+      exploredMap[y - 1][x] = newCellValue;
       toExplore.push({ y: y - 1, x });
     }
     // explore bottom cell
     if (y + 1 < exploredMap.length && exploredMap[y + 1][x] === 0) {
-      exploredMap[y + 1][x] = previousCellValue + 1;
+      exploredMap[y + 1][x] = newCellValue;
       toExplore.push({ y: y + 1, x });
     }
     // explore left cell
     if (x - 1 >= 0 && exploredMap[y][x - 1] === 0) {
-      exploredMap[y][x - 1] = previousCellValue + 1;
+      exploredMap[y][x - 1] = newCellValue;
       toExplore.push({ y, x: x - 1 });
     }
     // explore right cell
     if (x + 1 < exploredMap[y].length && exploredMap[y][x + 1] === 0) {
-      exploredMap[y][x + 1] = previousCellValue + 1;
+      exploredMap[y][x + 1] = newCellValue;
       toExplore.push({ y, x: x + 1 });
     }
     return explore(toExplore, exploredMap);
@@ -89,6 +94,7 @@ export function findPath(
     ) {
       y++;
     } else {
+      path.shift();
       break;
     }
     // eslint-disable-next-line no-constant-condition

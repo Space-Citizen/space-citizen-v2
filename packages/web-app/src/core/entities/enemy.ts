@@ -13,19 +13,18 @@ export class Enemy extends Container implements IEntity {
   private animation: IAnimation<
     ["walk-down", "walk-up", "walk-left", "walk-right", "idle"]
   >;
-  private detectionRange = 200;
-  private hitRange = 20;
   public path: ICoordinates[] | undefined;
   public walkDirection: Direction | undefined;
-  public speed: number;
   public readonly kind = "enemy";
 
   constructor(
     private map: Map,
-    private app: Application
+    private app: Application,
+    public speed: number,
+    private detectionRange = 200,
+    private hitRange = 50
   ) {
     super();
-    this.speed = 1;
     this.app.ticker.add(this.onTick.bind(this));
   }
 
@@ -73,7 +72,6 @@ export class Enemy extends Container implements IEntity {
     // if there is path to visit, start walking
     if (this.path?.length > 0) {
       this.walkOnPath();
-      return;
     }
 
     for (const entity of this.map.getEntities()) {
@@ -85,10 +83,24 @@ export class Enemy extends Container implements IEntity {
       // close enough to start following
       else if (
         entity.kind === "character" &&
-        distanceToEntity < this.detectionRange
+        distanceToEntity < this.detectionRange &&
+        // but not close enough to hit
+        distanceToEntity > this.hitRange &&
+        // and if the previous path is wrong (end of path is not the entity)
+        (!this.path ||
+          this.path.length === 0 ||
+          (this.path[this.path.length - 1].x !==
+            Math.round(entity.x / cellSize) &&
+            this.path[this.path.length - 1].y !==
+              Math.round(entity.y / cellSize)))
       ) {
         const myCell = this.map.getCell(this.x - 1, this.y - 1);
-        this.path = findPath(myCell, entity, this.map);
+        this.path = findPath(
+          myCell,
+          entity,
+          this.map,
+          /* maxLength */ distanceToEntity / cellSize + 4
+        );
         return;
       }
     }

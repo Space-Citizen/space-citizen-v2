@@ -57,7 +57,12 @@ export class GameCore {
     this.map.addEntity(this.character);
 
     // create and init an enemy
-    const enemy = new Enemy(this.map, app);
+    const enemy = new Enemy(
+      this.map,
+      app,
+      /* speed */ 3,
+      /* detectionRange */ 300
+    );
     await enemy.init();
     // offset slightly the enemy to the character start
     enemy.x = (characterStart.x - 3) * cellSize;

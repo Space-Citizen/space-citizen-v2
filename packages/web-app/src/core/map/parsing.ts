@@ -1,7 +1,7 @@
 import { Sprite } from "pixi.js";
 import { FloorType, ICell, WallType } from "../types";
 import { cellSize } from "../../constants";
-import { createAnimation } from "../sprites/createAnimation";
+import { IAnimation, createAnimation } from "../sprites/createAnimation";
 
 type SurroundingWallsMap = Record<
   "top" | "bottom" | "left" | "right" | "self",
@@ -63,7 +63,23 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
             },
           },
         });
-        cell.properties = { open: false };
+        cell.properties = {
+          open: false,
+          toggle: () => {
+            const door = cell as ICell<"door">;
+            if (!door.properties.open) {
+              door.properties.open = true;
+              door.solid = false;
+              (door.asset as IAnimation).switchAnimation("open");
+              (door.asset as IAnimation).play();
+            } else if (door.properties.open) {
+              door.properties.open = false;
+              door.solid = true;
+              (door.asset as IAnimation).switchAnimation("close");
+              (door.asset as IAnimation).play();
+            }
+          },
+        };
         cell.asset.zIndex = cell.y;
         cell.asset.pivot.y = cell.asset.height / 2;
         break;
