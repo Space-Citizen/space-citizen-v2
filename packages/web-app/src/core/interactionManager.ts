@@ -69,7 +69,8 @@ export class InteractionManager {
       !(
         door.x === Math.round(x / cellSize) &&
         // add 20 of play to using the door from quite close
-        door.y === Math.round((y + 20) / cellSize)
+        door.y === Math.round((y + 20) / cellSize) &&
+        Math.abs(door.y * cellSize - y) < cellSize / 2
       )
     ) {
       door.properties.toggle();
