@@ -126,12 +126,12 @@ export class Character extends Container implements IEntity {
     if (yDelta < 0) {
       cellsToCheck.push({
         x: Math.floor((newPlayerCoords.x + LeftCellCollisionPlay) / cellSize),
-        y: Math.floor((newPlayerCoords.y + this.height) / cellSize),
+        y: Math.ceil((newPlayerCoords.y - this.height / 2) / cellSize),
       });
       if (isBetweenVerticalCells) {
         cellsToCheck.push({
           x: Math.floor((newPlayerCoords.x + this.width) / cellSize),
-          y: Math.floor((newPlayerCoords.y + this.height) / cellSize),
+          y: Math.ceil((newPlayerCoords.y - this.height / 2) / cellSize),
         });
       }
     }
@@ -178,26 +178,25 @@ export class Character extends Container implements IEntity {
     return cellsToCheck.some((coords) => {
       const cell = this.map.cells.find(
         (cell) => cell.x === coords.x && cell.y === coords.y && cell.solid
-      );
+      ) as ICell<CellKind.wall>;
+      if (!cell) {
+        return false;
+      }
       // special case if we are going left and the cell is a vertical wall
       if (
-        cell &&
         cell.kind === CellKind.wall &&
         // all vertical walls are narrower than a regular cell size
-        ((cell as ICell<CellKind.wall>).properties.wallType.includes(
-          "vertical"
-        ) ||
+        (cell.properties.wallType.includes("vertical") ||
           // horizontal corner walls are also narrower than a regular cell size
-          (cell as ICell<CellKind.wall>).properties.wallType.includes(
-            "right-corner"
-          )) &&
+          cell.properties.wallType.includes("right-corner")) &&
         // only vertical-T walls are of regular cell size
-        (cell as ICell<CellKind.wall>).properties.wallType !== "vertical-T"
+        cell.properties.wallType !== "vertical-T"
       ) {
         // The player is allowed to go close to the wall, but not inside it, so we add this 10px margin
         return newPlayerCoords.x < cell.x * cellSize + 10;
       }
-      return cell?.solid;
+
+      return cell.solid;
     });
   }
 
