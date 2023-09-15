@@ -29,6 +29,8 @@ export interface IAnimation<AN extends readonly string[] = string[]>
   extends Container {
   readonly spriteSheet: Spritesheet;
   readonly switchAnimation: (animationName: AN[number]) => void;
+  readonly nextFrame: () => void;
+  readonly prevFrame: () => void;
   readonly play: () => void;
 }
 
@@ -84,7 +86,7 @@ export async function createAnimation<const AN extends readonly string[]>({
   // Generate all the Textures asynchronously
   await spriteSheet.parse();
 
-  const animation = new Container() as IAnimation<AN>;
+  const animation = new Container() as unknown as Writeable<IAnimation<AN>>;
   const switchAnimation: IAnimation<AN>["switchAnimation"] = (
     animationName
   ) => {
@@ -103,12 +105,25 @@ export async function createAnimation<const AN extends readonly string[]>({
     }
   };
 
-  (animation as Writeable<IAnimation<AN>>).switchAnimation = switchAnimation;
-  (animation as Writeable<IAnimation<AN>>).spriteSheet = spriteSheet;
-  (animation as Writeable<IAnimation<AN>>).play = () =>
-    (animation.children[0] as AnimatedSprite)?.play();
+  animation.switchAnimation = switchAnimation;
+  animation.spriteSheet = spriteSheet;
+  animation.play = () => (animation.children[0] as AnimatedSprite)?.play();
+  animation.nextFrame = () => {
+    const sprite = animation.children[0] as AnimatedSprite;
+    sprite.currentFrame =
+      sprite.currentFrame + 1 >= sprite.totalFrames
+        ? 0
+        : sprite.currentFrame + 1;
+  };
+  animation.prevFrame = () => {
+    const sprite = animation.children[0] as AnimatedSprite;
+    sprite.currentFrame =
+      sprite.currentFrame - 1 < 0
+        ? sprite.totalFrames
+        : sprite.currentFrame - 1;
+  };
   // start by setting the idle animation
   animation.switchAnimation(idleAnimationName);
 
-  return animation;
+  return animation as IAnimation<AN>;
 }

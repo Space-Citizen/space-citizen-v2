@@ -18,6 +18,7 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
         x,
         y,
         solid: kind === CellKind.wall || kind === CellKind.door,
+        damage: random(0, 3),
       } as ICell); // casting to avoid setting asset now
 
       // add a floor cell under the wall (except if there is no cells on the right side)
@@ -31,6 +32,7 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
           x,
           y,
           solid: false,
+          damage: random(0, 3),
         } as ICell);
       }
     });
@@ -39,16 +41,47 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
 
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i];
+    const previousWallCell = cells.find(
+      (c) => c.x === cell.x - 1 && c.y === cell.y && c.kind === CellKind.wall
+    );
     switch (cell.kind) {
       case CellKind.wall:
-        cell.properties = { wallType: findWallType(cell, cells) };
-        cell.asset = Sprite.from(
-          `assets/walls/${
-            (cell as ICell<CellKind.wall>).properties.wallType
-          }.png`
-        );
+        cell.properties = {
+          wallType: findWallType(cell, cells),
+        };
+        // windows work in pair, so if the previous cell is a window, we need to use the same damage value
+        if (
+          (cell as ICell<CellKind.wall>)?.properties?.wallType ===
+          "horizontal-window-right"
+        ) {
+          console.log(previousWallCell.kind);
+          cell.damage = previousWallCell.damage;
+        }
+        if (cell.properties.wallType.includes("window")) {
+          cell.asset = await createAnimation({
+            frameSize: { width: 100, height: 200 },
+            assetPath: `assets/walls/${cell.properties.wallType}.png`,
+            animationNames: ["default"],
+            idleAnimationName: "default",
+            animationSettings: {
+              "*": {
+                animationSpeed: 0.1666,
+                loop: false,
+              },
+            },
+          });
+
+          for (let i = cell.damage; i > 0; i--) {
+            (cell.asset as IAnimation).nextFrame();
+          }
+          cell.asset.pivot.y = cell.asset.height / 2;
+        } else {
+          cell.asset = Sprite.from(
+            `assets/walls/${cell.properties.wallType}.png`
+          );
+          (cell.asset as Sprite).anchor.y = cell.asset.height / 2;
+        }
         cell.asset.zIndex = cell.y;
-        (cell.asset as Sprite).anchor.y = cell.asset.height / 2;
         break;
       case CellKind.floor:
         cell.properties = { floorType: findFloorType(cell, cells) };

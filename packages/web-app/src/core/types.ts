@@ -53,4 +53,5 @@ export interface ICell<K extends CellKind = CellKind> {
   // If true, the cell is not walkable.
   solid: boolean;
   properties: CellProperties<K>;
+  damage: number;
 }
