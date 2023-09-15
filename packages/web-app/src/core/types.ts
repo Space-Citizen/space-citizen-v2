@@ -1,6 +1,10 @@
 import { Container, Sprite } from "pixi.js";
 
-type CellKind = "floor" | "wall" | "door";
+export enum CellKind {
+  floor,
+  wall,
+  door,
+}
 
 export type FloorType =
   | "floor"
@@ -16,6 +20,8 @@ export type WallType =
   | "vertical-bottom"
   | "vertical-T"
   | "horizontal"
+  | "horizontal-window-left"
+  | "horizontal-window-right"
   | "horizontal-T"
   | "horizontal-left-corner-bottom"
   | "horizontal-right-corner-bottom"
@@ -24,15 +30,15 @@ export type WallType =
   | "horizontal-left"
   | "horizontal-right";
 
-type CellProperties<K extends CellKind> = K extends "floor"
+type CellProperties<K extends CellKind> = K extends CellKind.floor
   ? {
       floorType: FloorType;
     }
-  : K extends "wall"
+  : K extends CellKind.wall
   ? {
       wallType: WallType;
     }
-  : K extends "door"
+  : K extends CellKind.door
   ? {
       toggle: () => void;
       open: boolean;

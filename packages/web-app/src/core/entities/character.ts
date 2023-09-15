@@ -3,7 +3,7 @@ import { IAnimation, createAnimation } from "../sprites/createAnimation";
 import type { Direction, ICoordinates, IEntity } from "../../types";
 import { cellSize } from "../../constants";
 import { Map } from "../map/map";
-import { ICell } from "../types";
+import { CellKind, ICell } from "../types";
 
 // Leave some play on the left cells to allow the character to go closer to the walls.
 const LeftCellCollisionPlay = 20;
@@ -182,15 +182,17 @@ export class Character extends Container implements IEntity {
       // special case if we are going left and the cell is a vertical wall
       if (
         cell &&
-        cell.kind === "wall" &&
+        cell.kind === CellKind.wall &&
         // all vertical walls are narrower than a regular cell size
-        ((cell as ICell<"wall">).properties.wallType.includes("vertical") ||
+        ((cell as ICell<CellKind.wall>).properties.wallType.includes(
+          "vertical"
+        ) ||
           // horizontal corner walls are also narrower than a regular cell size
-          (cell as ICell<"wall">).properties.wallType.includes(
+          (cell as ICell<CellKind.wall>).properties.wallType.includes(
             "right-corner"
           )) &&
         // only vertical-T walls are of regular cell size
-        (cell as ICell<"wall">).properties.wallType !== "vertical-T"
+        (cell as ICell<CellKind.wall>).properties.wallType !== "vertical-T"
       ) {
         // The player is allowed to go close to the wall, but not inside it, so we add this 10px margin
         return newPlayerCoords.x < cell.x * cellSize + 10;

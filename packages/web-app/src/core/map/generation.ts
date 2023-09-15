@@ -1,4 +1,5 @@
 import { ICoordinates } from "../../types";
+import { random } from "../utils/math";
 
 enum Direction {
   North,
@@ -17,10 +18,6 @@ interface IRoom {
 
 const minimumSharedWidth = 3;
 const minimumSharedHeight = 3;
-
-function random(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
 
 function generateRooms(count: number): IRoom[] {
   return Array.from({ length: count }).map(() => ({

@@ -78,7 +78,7 @@ export class Enemy extends Container implements IEntity {
       // close enough to do damage
       const distanceToEntity = distance(this.x, this.y, entity.x, entity.y);
       if (entity.kind === "character" && distanceToEntity < this.hitRange) {
-        console.log("hit");
+        // do something on hit
       }
       // close enough to start following
       else if (

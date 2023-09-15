@@ -1,31 +1,33 @@
 import { Sprite } from "pixi.js";
-import { FloorType, ICell, WallType } from "../types";
+import { CellKind, FloorType, ICell, WallType } from "../types";
 import { cellSize } from "../../constants";
 import { IAnimation, createAnimation } from "../sprites/createAnimation";
+import { random } from "../utils/math";
 
 type SurroundingWallsMap = Record<
   "top" | "bottom" | "left" | "right" | "self",
-  undefined | ICell<"wall"> | ICell<"door">
+  undefined | ICell<CellKind.wall> | ICell<CellKind.door>
 >;
 
 export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
   const cells = rawMap.reduce<ICell[]>((map, row, y) => {
     row.forEach((cell, x) => {
-      const kind = cell === 1 ? "wall" : cell === 2 ? "door" : "floor";
+      const kind = cell;
       map.push({
         kind,
         x,
         y,
-        solid: kind === "wall" || kind === "door",
+        solid: kind === CellKind.wall || kind === CellKind.door,
       } as ICell); // casting to avoid setting asset now
 
       // add a floor cell under the wall (except if there is no cells on the right side)
       if (
-        (kind === "wall" || kind === "door") &&
-        rawMap[y][x + 1] !== undefined
+        (kind === CellKind.wall || kind === CellKind.door) &&
+        rawMap[y][x + 1] !== undefined &&
+        rawMap[y - 1]?.[x] !== undefined
       ) {
         map.push({
-          kind: "floor",
+          kind: CellKind.floor,
           x,
           y,
           solid: false,
@@ -38,22 +40,26 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i];
     switch (cell.kind) {
-      case "wall":
+      case CellKind.wall:
         cell.properties = { wallType: findWallType(cell, cells) };
         cell.asset = Sprite.from(
-          `assets/walls/${(cell as ICell<"wall">).properties.wallType}.png`
+          `assets/walls/${
+            (cell as ICell<CellKind.wall>).properties.wallType
+          }.png`
         );
         cell.asset.zIndex = cell.y;
         (cell.asset as Sprite).anchor.y = cell.asset.height / 2;
         break;
-      case "floor":
+      case CellKind.floor:
         cell.properties = { floorType: findFloorType(cell, cells) };
         cell.asset = Sprite.from(
-          `assets/floors/${(cell as ICell<"floor">).properties.floorType}.png`
+          `assets/floors/${
+            (cell as ICell<CellKind.floor>).properties.floorType
+          }.png`
         );
         cell.asset.zIndex = -1;
         break;
-      case "door":
+      case CellKind.door:
         cell.asset = await createAnimation({
           frameSize: { width: 100, height: 200 },
           assetPath: "assets/door.png",
@@ -69,7 +75,7 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
         cell.properties = {
           open: false,
           toggle: () => {
-            const door = cell as ICell<"door">;
+            const door = cell as ICell<CellKind.door>;
             if (!door.properties.open) {
               door.properties.open = true;
               door.solid = false;
@@ -107,23 +113,23 @@ function getSurroundingWalls(
     self: undefined,
   };
   cells.forEach((cell) => {
-    if (cell.kind !== "wall" && cell.kind !== "door") {
+    if (cell.kind !== CellKind.wall && cell.kind !== CellKind.door) {
       return;
     }
     if (cell.x === x && cell.y === y) {
-      surroundingWalls.self = cell as ICell<"wall">;
+      surroundingWalls.self = cell as ICell<CellKind.wall>;
     }
     if (cell.x === x - 1 && cell.y === y) {
-      surroundingWalls.left = cell as ICell<"wall">;
+      surroundingWalls.left = cell as ICell<CellKind.wall>;
     }
     if (cell.x === x + 1 && cell.y === y) {
-      surroundingWalls.right = cell as ICell<"wall">;
+      surroundingWalls.right = cell as ICell<CellKind.wall>;
     }
     if (cell.x === x && cell.y === y - 1) {
-      surroundingWalls.top = cell as ICell<"wall">;
+      surroundingWalls.top = cell as ICell<CellKind.wall>;
     }
     if (cell.x === x && cell.y === y + 1) {
-      surroundingWalls.bottom = cell as ICell<"wall">;
+      surroundingWalls.bottom = cell as ICell<CellKind.wall>;
     }
   });
   return surroundingWalls;
@@ -132,10 +138,16 @@ function getSurroundingWalls(
 function findFloorType({ x, y }: ICell, cells: ICell[]): FloorType {
   const surroundingWalls = getSurroundingWalls(x, y, cells);
 
-  const topWallType = (surroundingWalls.top as ICell<"wall">)?.properties
+  const topWallType = (surroundingWalls.top as ICell<CellKind.wall>)?.properties
     ?.wallType;
 
-  if (surroundingWalls.self?.kind === "door") {
+  const selfWallType = (surroundingWalls.self as ICell<CellKind.wall>)
+    ?.properties?.wallType;
+
+  if (
+    surroundingWalls.self?.kind === CellKind.door ||
+    selfWallType?.includes("window")
+  ) {
     return "floor";
   }
 
@@ -152,7 +164,7 @@ function findFloorType({ x, y }: ICell, cells: ICell[]): FloorType {
   if (
     surroundingWalls.top &&
     (topWallType?.includes("horizontal") ||
-      surroundingWalls.top.kind === "door")
+      surroundingWalls.top.kind === CellKind.door)
   ) {
     // special case for right-corner-top assets, we want a corner shadow
     if (topWallType === "horizontal-right-corner-top") {
@@ -169,6 +181,29 @@ function findWallType({ x, y }: ICell, cells: ICell[]): WallType {
   if (surroundingWalls.left && surroundingWalls.right) {
     if (surroundingWalls.bottom) {
       return "horizontal-T";
+    }
+    const leftWallType = (surroundingWalls.left as ICell<CellKind.wall>)
+      .properties?.wallType;
+
+    // if there is a window on the left, we must add the right part of that window
+    if (leftWallType === "horizontal-window-left") {
+      return "horizontal-window-right";
+    }
+
+    // check if there is a wall on the right of the right wall. If so, it's a long wall and we can add a window
+    const isLongWall = !!cells.find(
+      (c) =>
+        surroundingWalls.right.x + 1 === c.x &&
+        surroundingWalls.right.y === c.y &&
+        c.kind === CellKind.wall
+    );
+    // add random chances to have a window on a long horizontal wall
+    if (
+      surroundingWalls.right.kind === CellKind.wall &&
+      isLongWall &&
+      random(0, 3) === 0
+    ) {
+      return "horizontal-window-left";
     }
     return "horizontal";
   }

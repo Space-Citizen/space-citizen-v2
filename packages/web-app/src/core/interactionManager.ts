@@ -3,7 +3,7 @@ import { cellSize, interactionRadius } from "../constants";
 import { IEntity } from "../types";
 import { Map } from "./map/map";
 import { uiAPI } from "../react-ui/UIApi";
-import { ICell } from "./types";
+import { CellKind, ICell } from "./types";
 
 /**
  * Class taking care of user interactions,
@@ -59,7 +59,9 @@ export class InteractionManager {
     const { x, y } = this.character;
     const cells = this.map.getCells(x, y, interactionRadius);
 
-    const door = cells.find((cell) => cell.kind === "door") as ICell<"door">;
+    const door = cells.find(
+      (cell) => cell.kind === CellKind.door
+    ) as ICell<CellKind.door>;
     // open or close the door
     if (
       door &&
@@ -79,7 +81,7 @@ export class InteractionManager {
     const cells = this.map.getCells(x, y, interactionRadius);
 
     // check for doors
-    const hasInteraction = cells.some((cell) => cell.kind === "door");
+    const hasInteraction = cells.some((cell) => cell.kind === CellKind.door);
     if (hasInteraction && !this.dialogDismiss) {
       this.dialogDismiss?.();
       this.dialogDismiss = uiAPI.showDialog(
