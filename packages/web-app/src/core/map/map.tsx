@@ -3,7 +3,7 @@ import { cellSize } from "../../constants";
 import { ICell } from "../types";
 import { parseMap } from "./parsing";
 import { ICoordinates, IEntity } from "../../types";
-import { generateMap } from "./generation";
+import { IRoom, generateMap } from "./generation";
 
 export class Map {
   public container = new Container();
@@ -11,9 +11,11 @@ export class Map {
   private entities: IEntity[] = [];
   public rawMap: number[][];
   public startLocation: ICoordinates;
+  public rooms: IRoom[];
 
   constructor() {
-    const { map, startCoords } = generateMap();
+    const { map, startCoords, rooms } = generateMap();
+    this.rooms = rooms;
     this.rawMap = map;
     this.startLocation = startCoords;
   }

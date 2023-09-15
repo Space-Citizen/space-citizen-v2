@@ -1,4 +1,5 @@
 import { ICoordinates } from "../../types";
+import { CellKind } from "../types";
 import { random } from "../utils/math";
 
 enum Direction {
@@ -8,11 +9,12 @@ enum Direction {
   West,
 }
 
-interface IRoom {
+export interface IRoom {
   x: number;
   y: number;
   width: number;
   height: number;
+  actualCenter?: { x: number; y: number };
   corridor?: { from: ICoordinates; to: ICoordinates; direction: Direction };
 }
 
@@ -185,6 +187,7 @@ function moveRoom(room: IRoom, direction: Direction, outerMostRoom: IRoom) {
 export function generateMap(): {
   map: number[][];
   startCoords: ICoordinates;
+  rooms: IRoom[];
 } {
   // start by generating many rooms with random sizes, but with more height than width
   const rooms = generateRooms(20);
@@ -206,6 +209,7 @@ export function generateMap(): {
   const startY = northMostRoom.y;
 
   const map: number[][] = [];
+  // write the room on the map
   rooms.forEach((room) => {
     for (let y = 0; y < room.height; y++) {
       for (let x = 0; x < room.width; x++) {
@@ -216,9 +220,14 @@ export function generateMap(): {
         if (map[mapY] === undefined) {
           map[mapY] = [];
         }
-        map[mapY][mapX] = isWall ? 1 : 0;
+        map[mapY][mapX] = isWall ? CellKind.wall : CellKind.floor;
       }
     }
+    // also update the room actual center
+    room.actualCenter = {
+      x: Math.abs(startX - (room.x + Math.floor(room.width / 2))),
+      y: Math.abs(startY - (room.y + Math.floor(room.height / 2))),
+    };
   });
 
   // now add the corridors
@@ -275,6 +284,7 @@ export function generateMap(): {
     });
 
   return {
+    rooms,
     map,
     startCoords: {
       x: Math.abs(startX - (rooms[0].x + Math.floor(rooms[0].width / 2))),

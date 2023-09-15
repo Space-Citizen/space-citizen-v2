@@ -12,7 +12,10 @@ import { IAnimation } from "./sprites/createAnimation";
  */
 export class InteractionManager {
   private pressedKeys = new Set();
-  private dialogDismiss: () => void;
+  private currentDialog?: {
+    key: "start" | "interact" | "repair";
+    dismiss: () => void;
+  };
 
   constructor(
     private character: IEntity,
@@ -22,6 +25,14 @@ export class InteractionManager {
     window.addEventListener("keydown", this.onKeyDown.bind(this));
     window.addEventListener("keyup", this.onKeyUp.bind(this));
     this.app.ticker.add(this.onTick.bind(this));
+
+    this.currentDialog = {
+      dismiss: uiAPI.showDialog(
+        { message: "Oh no ! The air is leaking out." },
+        { dismissTimeout: 2000, animation: "text" }
+      ),
+      key: "start",
+    };
   }
 
   public destroy() {
@@ -95,24 +106,36 @@ export class InteractionManager {
 
     // check for doors
     if (canOpenDoor) {
-      if (this.dialogDismiss) {
+      if (this.currentDialog?.key === "interact") {
         return;
       }
-      this.dialogDismiss = uiAPI.showDialog(
-        { key: "E", message: "Interact" },
-        { animation: "fade" }
-      );
+      this.currentDialog?.dismiss();
+      this.currentDialog = {
+        dismiss: uiAPI.showDialog(
+          { key: "E", message: "Interact" },
+          { animation: "fade" }
+        ),
+        key: "interact",
+      };
     } else if (canFixWall) {
-      if (this.dialogDismiss) {
+      if (this.currentDialog?.key === "repair") {
         return;
       }
-      this.dialogDismiss = uiAPI.showDialog(
-        { key: "E", message: "Repair" },
-        { animation: "fade" }
-      );
+      this.currentDialog?.dismiss();
+      this.currentDialog = {
+        dismiss: uiAPI.showDialog(
+          { key: "E", message: "Repair" },
+          { animation: "fade" }
+        ),
+        key: "repair",
+      };
     } else {
-      this.dialogDismiss?.();
-      this.dialogDismiss = undefined;
+      // except for the start dialog
+      if (this.currentDialog?.key === "start") {
+        return;
+      }
+      this.currentDialog?.dismiss();
+      this.currentDialog = undefined;
     }
   };
 
