@@ -37,6 +37,7 @@ type CellProperties<K extends CellKind> = K extends CellKind.floor
   : K extends CellKind.wall
   ? {
       wallType: WallType;
+      windowType?: "left" | "right";
     }
   : K extends CellKind.door
   ? {

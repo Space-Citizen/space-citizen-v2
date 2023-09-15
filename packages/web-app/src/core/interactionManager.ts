@@ -4,6 +4,7 @@ import { IEntity } from "../types";
 import { Map } from "./map/map";
 import { uiAPI } from "../react-ui/UIApi";
 import { CellKind, ICell } from "./types";
+import { IAnimation } from "./sprites/createAnimation";
 
 /**
  * Class taking care of user interactions,
@@ -62,6 +63,9 @@ export class InteractionManager {
     const door = cells.find(
       (cell) => cell.kind === CellKind.door
     ) as ICell<CellKind.door>;
+    const wall = cells.find(
+      (cell) => cell.kind === CellKind.wall && cell.damage > 0
+    ) as ICell<CellKind.door>;
     // open or close the door
     if (
       door &&
@@ -74,6 +78,9 @@ export class InteractionManager {
       )
     ) {
       door.properties.toggle();
+    } else if (wall) {
+      (wall.asset as IAnimation).prevFrame();
+      wall.damage--;
     }
   }
 
@@ -81,15 +88,29 @@ export class InteractionManager {
     const { x, y } = this.character;
     const cells = this.map.getCells(x, y, interactionRadius);
 
+    const canOpenDoor = cells.some((cell) => cell.kind === CellKind.door);
+    const canFixWall = cells.some(
+      (cell) => cell.kind === CellKind.wall && cell.damage > 0
+    );
+
     // check for doors
-    const hasInteraction = cells.some((cell) => cell.kind === CellKind.door);
-    if (hasInteraction && !this.dialogDismiss) {
-      this.dialogDismiss?.();
+    if (canOpenDoor) {
+      if (this.dialogDismiss) {
+        return;
+      }
       this.dialogDismiss = uiAPI.showDialog(
         { key: "E", message: "Interact" },
         { animation: "fade" }
       );
-    } else if (!hasInteraction) {
+    } else if (canFixWall) {
+      if (this.dialogDismiss) {
+        return;
+      }
+      this.dialogDismiss = uiAPI.showDialog(
+        { key: "E", message: "Repair" },
+        { animation: "fade" }
+      );
+    } else {
       this.dialogDismiss?.();
       this.dialogDismiss = undefined;
     }

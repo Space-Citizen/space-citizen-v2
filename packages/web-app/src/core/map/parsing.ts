@@ -18,10 +18,10 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
         x,
         y,
         solid: kind === CellKind.wall || kind === CellKind.door,
-        damage: random(0, 3),
+        damage: 0,
       } as ICell); // casting to avoid setting asset now
 
-      // add a floor cell under the wall (except if there is no cells on the right side)
+      // add a floor cell under the wall (except if there is no cells on top or right side)
       if (
         (kind === CellKind.wall || kind === CellKind.door) &&
         rawMap[y][x + 1] !== undefined &&
@@ -32,7 +32,7 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
           x,
           y,
           solid: false,
-          damage: random(0, 3),
+          damage: 0,
         } as ICell);
       }
     });
@@ -49,13 +49,13 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
         cell.properties = {
           wallType: findWallType(cell, cells),
         };
+        cell.properties.windowType = findWindowType(cell.properties);
+
         // windows work in pair, so if the previous cell is a window, we need to use the same damage value
-        if (
-          (cell as ICell<CellKind.wall>)?.properties?.wallType ===
-          "horizontal-window-right"
-        ) {
-          console.log(previousWallCell.kind);
+        if ((cell as ICell<CellKind.wall>).properties.windowType === "right") {
           cell.damage = previousWallCell.damage;
+        } else if (cell.properties.windowType) {
+          cell.damage = random(0, 3); // windows have random amount of damage
         }
         if (cell.properties.wallType.includes("window")) {
           cell.asset = await createAnimation({
@@ -131,6 +131,16 @@ export async function parseMap(rawMap: number[][]): Promise<ICell[]> {
   }
 
   return cells;
+}
+
+function findWindowType(wallProperties: ICell<CellKind.wall>["properties"]) {
+  if (wallProperties.wallType === "horizontal-window-left") {
+    return "left";
+  }
+  if (wallProperties.wallType === "horizontal-window-right") {
+    return "right";
+  }
+  return undefined;
 }
 
 function getSurroundingWalls(
