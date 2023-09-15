@@ -4,6 +4,7 @@ export interface IEntity extends Container {
   init(): Promise<void>;
   walk(direction: Direction): void;
   stopWalking(): void;
+  takeDamages(): void;
   walkDirection: Direction;
   speed: number;
   kind: "character" | "enemy";

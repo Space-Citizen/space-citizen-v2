@@ -12,6 +12,7 @@ import { IAnimation } from "./sprites/createAnimation";
  */
 export class InteractionManager {
   private pressedKeys = new Set();
+  private isDestroyed = false;
   private currentDialog?: {
     key: "start" | "interact" | "repair";
     dismiss: () => void;
@@ -29,17 +30,25 @@ export class InteractionManager {
     this.currentDialog = {
       dismiss: uiAPI.showDialog(
         { message: "Oh no ! The air is leaking out." },
-        { dismissTimeout: 2000, animation: "text" }
+        { dismissTimeout: 3000, animation: "text" }
       ),
       key: "start",
     };
+    uiAPI.showUI();
   }
 
   public destroy() {
+    this.isDestroyed = true;
+    this.currentDialog?.dismiss();
     this.app.ticker.remove(this.onTick.bind(this));
+    window.removeEventListener("keydown", this.onKeyDown.bind(this));
+    window.removeEventListener("keyup", this.onKeyUp.bind(this));
   }
 
   public onTick(): void {
+    if (this.isDestroyed) {
+      return;
+    }
     this.checkForInteractions();
   }
 

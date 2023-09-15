@@ -1,3 +1,4 @@
+import { roomCount } from "../../constants";
 import { ICoordinates } from "../../types";
 import { CellKind } from "../types";
 import { random } from "../utils/math";
@@ -190,7 +191,7 @@ export function generateMap(): {
   rooms: IRoom[];
 } {
   // start by generating many rooms with random sizes, but with more height than width
-  const rooms = generateRooms(20);
+  const rooms = generateRooms(roomCount);
   // then move them away from each other until none of them overlap and
   // they are between 1 and 2 cells away from each other,
   rooms.slice(1).forEach((room, index) => {

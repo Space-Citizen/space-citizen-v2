@@ -16,11 +16,17 @@ export const app = new Application({
   backgroundColor: "#000000",
 });
 
+const screenCenter = {
+  x: app.view.width / 2,
+  y: app.view.height / 2,
+};
+
 export class GameCore {
   private character: Character;
   private map: Map;
   private interactionManager: InteractionManager;
   private crtFilter: CRTFilter;
+  private winCheckInterval: number;
 
   constructor() {
     // create the map
@@ -52,6 +58,40 @@ export class GameCore {
     });
   }
 
+  public async lose(cause: "air" | "hp") {
+    // if we already won, we cannot lose.
+    if (!this.winCheckInterval) {
+      return;
+    }
+    clearInterval(this.winCheckInterval);
+    // hide the health and O2 bars
+    uiAPI.hideUI();
+
+    this.interactionManager.destroy();
+
+    this.map.destroy();
+    // remove the map
+    app.stage.removeChildren();
+    this.character = undefined;
+
+    const dismiss = uiAPI.showDialog({
+      message: cause === "air" ? "I.. can't brea.." : "It hurts so much..",
+    });
+    await sleep(3000);
+    dismiss();
+    uiAPI.showDialog({
+      message: "You died doing what you love, losing. Press F5 to try again.",
+    });
+  }
+
+  public async win() {
+    uiAPI.hideUI();
+    uiAPI.showDialog(
+      { message: "I survived ! Awesome ! Now I can walk here forever." },
+      { dismissTimeout: 10000 }
+    );
+  }
+
   private async playStartAnimation() {
     const wakeUpDuration = 2000;
 
@@ -66,7 +106,7 @@ export class GameCore {
       { message: "What was that ??" },
       { animation: "text" }
     );
-    +(await sleep(1000));
+    await sleep(1000);
     // a animation to make the vignetting effect
     await this.CRTAnimation("forward", wakeUpDuration);
     dismiss();
@@ -75,15 +115,10 @@ export class GameCore {
   }
 
   public async init() {
-    const screenCenter = {
-      x: app.view.width / 2,
-      y: app.view.height / 2,
-    };
-
     // create and init the character
     this.character = new Character(this.map, app);
     await this.character.init();
-    this.character.x = screenCenter.x;
+    this.character.x = screenCenter.x - this.character.width;
     this.character.y = screenCenter.y;
     // add temporarily the character to the stage to play the start animation
     app.stage.addChild(this.character);
@@ -105,8 +140,8 @@ export class GameCore {
         const enemy = new Enemy(
           this.map,
           app,
-          /* speed */ 2,
-          /* detectionRange */ 300
+          /* speed */ 2.5,
+          /* detectionRange */ 350
         );
         await enemy.init();
         enemy.x = (room.actualCenter.x + i) * cellSize;
@@ -118,7 +153,8 @@ export class GameCore {
     });
 
     // center the map on the character
-    this.map.container.x = screenCenter.x - this.character.x;
+    this.map.container.x =
+      screenCenter.x - this.character.x - this.character.width;
     this.map.container.y = screenCenter.y - this.character.y;
 
     // add the map to the stage.
@@ -132,6 +168,14 @@ export class GameCore {
       this.map,
       app
     );
+
+    this.winCheckInterval = window.setInterval(() => {
+      // check for win (when all cells have no damages)
+      if (!this.map.cells.some((cell) => cell.damage > 0)) {
+        this.win();
+        clearInterval(this.winCheckInterval);
+      }
+    }, 1000);
   }
 
   public destroy() {

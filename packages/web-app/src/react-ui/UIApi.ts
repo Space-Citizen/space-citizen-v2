@@ -10,10 +10,16 @@ export interface IUIComponent {
   options?: IShowDialogOptions;
 }
 
-export type Event = "new" | "delete";
-export type EventData<E extends Event> = E extends "new"
+export type Event =
+  | "dialog-new"
+  | "dialog-delete"
+  | "takeDamage"
+  | "hide-bars-ui"
+  | "show-bars-ui";
+
+export type EventData<E extends Event> = E extends "dialog-new"
   ? IUIComponent
-  : E extends "delete"
+  : E extends "dialog-delete"
   ? { id: string }
   : undefined;
 
@@ -45,7 +51,7 @@ class UIApi {
     options?: IShowDialogOptions
   ): () => void {
     const id = (this.eventCounter++).toString();
-    this.listener?.("new", {
+    this.listener?.("dialog-new", {
       id,
       type: "dialog",
       content,
@@ -61,8 +67,19 @@ class UIApi {
     return dismiss;
   }
 
+  public takeDamage() {
+    this.listener?.("takeDamage", undefined);
+  }
+
+  public showUI() {
+    this.listener?.("show-bars-ui", undefined);
+  }
+  public hideUI() {
+    this.listener?.("hide-bars-ui", undefined);
+  }
+
   private closeDialog(id: string) {
-    this.listener?.("delete", { id });
+    this.listener?.("dialog-delete", { id });
   }
 }
 

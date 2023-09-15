@@ -28,8 +28,10 @@ export class Map {
   }
 
   public destroy() {
-    this.container.destroy();
     this.entities.forEach((entity) => entity.destroy());
+    this.container.destroy();
+    this.entities = [];
+    this.cells = [];
   }
 
   public addEntity(entity: IEntity) {

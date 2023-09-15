@@ -1,12 +1,16 @@
 import { Application, Container } from "pixi.js";
 import { IAnimation, createAnimation } from "../sprites/createAnimation";
 import type { Direction, ICoordinates, IEntity } from "../../types";
-import { cellSize } from "../../constants";
+import { cellSize, damageCoolDown } from "../../constants";
 import { Map } from "../map/map";
 import { CellKind, ICell } from "../types";
+import { uiAPI } from "../../react-ui/UIApi";
+import { random } from "../utils/math";
 
 // Leave some play on the left cells to allow the character to go closer to the walls.
 const LeftCellCollisionPlay = 20;
+
+const swearWords = ["Putain !", "Merde !", "Helleveta !", "Bordel !"];
 
 export class Character extends Container implements IEntity {
   private animation: IAnimation<
@@ -15,6 +19,8 @@ export class Character extends Container implements IEntity {
   public walkDirection: Direction;
   public speed: number;
   public readonly kind = "character";
+  private lastDamageTime = 0;
+  private isDestroyed = false;
 
   constructor(
     private map: Map,
@@ -62,10 +68,41 @@ export class Character extends Container implements IEntity {
 
   public destroy() {
     super.destroy();
+    this.isDestroyed = true;
     this.app.ticker.remove(this.onTick.bind(this));
   }
 
+  private hasHadRecentDamages() {
+    if (Date.now() - this.lastDamageTime < damageCoolDown) {
+      return true;
+    }
+    return false;
+  }
+
+  public takeDamages() {
+    if (this.hasHadRecentDamages()) {
+      return;
+    }
+    this.lastDamageTime = Date.now();
+    uiAPI.takeDamage();
+    uiAPI.showDialog(
+      {
+        message: swearWords[random(0, swearWords.length - 1)],
+      },
+      { dismissTimeout: 1000 }
+    );
+  }
+
   private onTick(delta: number) {
+    if (this.isDestroyed) {
+      return;
+    }
+    if (this.hasHadRecentDamages()) {
+      this.alpha = 0.5;
+    } else {
+      this.alpha = 1;
+    }
+
     if (!this.walkDirection) {
       return;
     }

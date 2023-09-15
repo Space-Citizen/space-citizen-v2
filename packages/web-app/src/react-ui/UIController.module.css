@@ -4,4 +4,55 @@
   height: 100%;
   top: 0;
   left: 0;
+  z-index: 999;
+}
+
+.ui-air-container {
+  display: flex;
+  flex-direction: row;
+  margin-left: 10vw;
+  color: white;
+  font-size: 25px;
+  font-family: pixel-font, sans-serif;
+  align-items: center;
+  gap: 10px;
+  width: 80vw;
+}
+
+.ui-hp-container {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10vh;
+  margin-left: 10vw;
+  color: white;
+  font-size: 25px;
+  font-family: pixel-font, sans-serif;
+  align-items: center;
+  gap: 10px;
+  width: 80vw;
+}
+
+@keyframes air-leak {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0%;
+  }
+}
+
+.ui-air-bar {
+  border-radius: 10px;
+  background: rgba(0, 208, 255, 0.867);
+  height: 20px;
+  animation: air-leak;
+  animation-timing-function: linear;
+}
+
+
+.ui-hp-bar {
+  border-radius: 10px;
+  background: #ba1e1e;
+  height: 20px;
+  width: 100%;
 }

@@ -2,6 +2,10 @@ import * as React from "react";
 import "./App.module.css";
 import { GameCore, app } from "./core/core";
 import { UIController } from "./react-ui/UIController";
+import { airLeakMaxDuration } from "./constants";
+
+const controller = new GameCore();
+let airTimeout: number;
 
 export function App(): React.ReactElement {
   React.useEffect(() => {
@@ -14,11 +18,19 @@ export function App(): React.ReactElement {
     wrapper.appendChild(app.view as HTMLCanvasElement);
     document.body.appendChild(wrapper);
 
-    const controller = new GameCore();
     controller.init();
+
+    airTimeout = window.setTimeout(() => {
+      controller.lose("air");
+    }, airLeakMaxDuration);
 
     return controller.destroy;
   }, []);
 
-  return <UIController />;
+  const onDeath = React.useCallback(() => {
+    clearTimeout(airTimeout);
+    controller.lose("hp");
+  }, []);
+
+  return <UIController onDeath={onDeath} />;
 }

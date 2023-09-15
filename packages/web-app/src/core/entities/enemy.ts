@@ -22,7 +22,7 @@ export class Enemy extends Container implements IEntity {
     private app: Application,
     public speed: number,
     private detectionRange = 200,
-    private hitRange = 50
+    private hitRange = 55
   ) {
     super();
     this.app.ticker.add(this.onTick.bind(this));
@@ -63,6 +63,10 @@ export class Enemy extends Container implements IEntity {
     this.stopWalking();
   }
 
+  public takeDamages() {
+    // todo
+  }
+
   public destroy(): void {
     super.destroy();
     this.app.ticker.remove(this.onTick.bind(this));
@@ -78,7 +82,7 @@ export class Enemy extends Container implements IEntity {
       // close enough to do damage
       const distanceToEntity = distance(this.x, this.y, entity.x, entity.y);
       if (entity.kind === "character" && distanceToEntity < this.hitRange) {
-        // do something on hit
+        entity.takeDamages();
       }
       // close enough to start following
       else if (
